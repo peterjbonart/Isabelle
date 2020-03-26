@@ -1,6 +1,6 @@
 theory subcategory_Factorization
   imports Main
-         "Category3.Subcategory"
+         "~~/myLibs/Category3/Category3/Subcategory"
 begin
 
 

@@ -1,7 +1,7 @@
 theory finitePointedSet
   imports Main
-         "Category3.Category"
-         "Category3.Subcategory"
+         "~~/myLibs/Category3/Category3/Category"
+         "~~/myLibs/Category3/Category3/Subcategory"
      
 begin
 
