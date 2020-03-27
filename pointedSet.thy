@@ -3,7 +3,7 @@ theory pointedSet
          "Category3.SetCat"
          "Category3.InitialTerminal"
          "Category3.Subcategory"
-         finitePointedSet
+         Gamma
 begin
 
 

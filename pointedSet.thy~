@@ -1,8 +1,8 @@
 theory pointedSet
   imports Main
-         "~~/myLibs/Category3/Category3/SetCat"
-         "~~/myLibs/Category3/Category3/InitialTerminal"
-         "~~/myLibs/Category3/Category3/Subcategory"
+         "Category3.SetCat"
+         "Category3.InitialTerminal"
+         "Category3.Subcategory"
          finitePointedSet
 begin
 

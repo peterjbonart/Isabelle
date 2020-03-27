@@ -1,6 +1,6 @@
 theory simplicialSet
   imports Main
-         Gamma
+         finitePointedSet
 begin
 
 locale simplex
