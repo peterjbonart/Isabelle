@@ -1,0 +1,17 @@
+How to use these theories in Isabelle:
+
+Download the theories from this github.
+Download the following category theory library:
+https://www.isa-afp.org/entries/Category3.html
+
+Extract the files from this github into some folder.
+Extract the category theory library files into some folder.
+Add the name of both folders to the "ROOTS" file of Isabelle.
+
+Start Isabelle
+Switch the Logic to "CategoryAndHomology"
+Restart Isabelle
+
+The first time you do this, Isabelle will create a persistent heap image of all the category theory and homology theory files, which might take a while.
+
+Once Isabelle is using the "CategoryAndHomology" logic, all the theory files from this github should compile without error.
