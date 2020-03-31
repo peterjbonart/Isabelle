@@ -6,6 +6,7 @@ theory Gamma
 begin
 
 
+type_synonym gamma = "(nat \<times> nat list) option"
 
 fun get :: "('a list) \<Rightarrow> nat \<Rightarrow> 'a" where
  "get [] n = undefined" |

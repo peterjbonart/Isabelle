@@ -501,7 +501,13 @@ definition prod_UP_map :: "'a LC parr list \<Rightarrow> 'a LC pointed_set \<Rig
   "prod_UP_map cone X = ((\<lambda>x \<in>snd X. Join (rev_get (length cone) (\<lambda>n. fst (get cone n) x)  )),
               (X, pointed_product (rev_get (length cone) (\<lambda>n. Cod' (get cone n)))))"
 
-
+lemma pointed_product_obj: 
+  assumes "\<forall>n<length X. Obj' (get X n)" 
+  shows "Obj' (pointed_product X)"
+  unfolding Obj'_def
+  apply (simp add: get_rev_get)
+  using \<open>\<forall>n<length X. Obj' (get X n)\<close>
+  unfolding Obj'_def.
 
 
 lemma prod_proj_arr : "\<forall> k<length f . Obj' (get f k) \<Longrightarrow> 
@@ -603,6 +609,12 @@ proof-
     using cone_pointed cone by simp
 qed
 
+
+lemma prod_UP_map_dom : "Dom' (prod_UP_map cone X) = X"
+  unfolding prod_UP_map_def by simp
+
+lemma prod_UP_map_cod : "Cod' (prod_UP_map cone X) = pointed_product (fmap Cod' cone)"
+  unfolding prod_UP_map_def by simp
 
 
 lemma productUP : "(\<forall>k<length cone. Arr' (get cone k) \<and> Dom' (get cone k) = X \<and> Cod' (get cone k) = get c k)
@@ -2917,7 +2929,7 @@ section "More pointed set theory"
 interpretation CC: classical_category Obj' Arr' Dom' Cod' Id' Comp'
   using ccpf.
 
-definition pointed_set_comp where "pointed_set_comp \<equiv> CC.comp"
+definition pointed_set_comp where "pointed_set_comp = CC.comp"
 
 
 lemma is_category: "category pointed_set_comp"
@@ -3776,6 +3788,14 @@ proof
 qed
 
 
+
+
+
+fun MkFunctor :: "'a comp \<Rightarrow> 'b comp \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
+  "MkFunctor C D f a = 
+                 (if partial_magma.arr C a 
+                 then f a
+                 else partial_magma.null D)"
 
 
 

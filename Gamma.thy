@@ -6,7 +6,6 @@ theory Gamma
 begin
 
 
-context begin
 type_synonym gamma = "(nat \<times> nat list) option"
 
 fun get :: "('a list) \<Rightarrow> nat \<Rightarrow> 'a" where
@@ -230,7 +229,7 @@ proof
   qed
 qed
 
-definition comp where "comp \<equiv> CC.comp"
+definition comp where "comp = CC.comp"
 
 lemma is_classical_category : "classical_category Obj' Arr' Dom' Cod' Id' Comp'"
   using local.CC.classical_category_axioms.
@@ -447,7 +446,7 @@ qed
 
  
 
-definition comp where "comp \<equiv> SC.comp"
+definition comp where "comp = SC.comp"
 
 lemma is_category : "category comp"
   by (simp add: SC.subcategory_axioms local.comp_def subcategory.is_category)
