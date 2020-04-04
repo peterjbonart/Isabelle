@@ -42,9 +42,9 @@ definition Obj'
   where "Obj' X \<equiv> fst X \<in> (snd X)"
 
 definition Arr'
-  where "Arr' t \<equiv> setcat.Arr (forget t) \<and>
+  where "Arr' t = (setcat.Arr (forget t) \<and>
                   Obj' (Dom' t) \<and> Obj' (Cod' t) \<and>
-                  Fun' t (fst (Dom' t)) = fst (Cod' t)"
+                  Fun' t (fst (Dom' t)) = fst (Cod' t))"
 
 definition Id'
   where "Id' X \<equiv> (\<lambda> x \<in> (snd X). x,(X,X))"
@@ -2673,7 +2673,7 @@ proof-
          cocone A)"
     using f_up_map by simp
 qed
-        
+
 lemma coprod_finset_UP_uniqueness: assumes
        cocone: "\<forall>A. pointed_finset X A \<longrightarrow> Arr' (cocone A) \<and> Cod' (cocone A) = Z"
             "Obj' X" "Obj' Z" 
@@ -3102,6 +3102,11 @@ qed
 definition pointed_finite_subcat where
   "pointed_finite_subcat \<equiv> subcategory.comp pointed_set_comp FiniteArr'"
 
+lemma finite_subcat_is_category : "category pointed_finite_subcat"
+  unfolding pointed_finite_subcat_def
+  using subcategory.is_category [OF finite_subcat]
+  by simp
+
 
 end
 
@@ -3159,25 +3164,58 @@ definition functor_from_finsets where
              (\<forall>S T U. pointed_finset_triangle X S T \<and> pointed_finset_triangle X T U
              \<longrightarrow> (F T U) \<cdot> (F S T) = F S U))" 
 
-
 definition colimit_prerelation where
-  "colimit_prerelation X A F x y = (\<exists> S T. pointed_finset_triangle X S T \<and>
-                               x \<in> snd (coproductOverFinsets X A) \<and>
-                               y \<in> snd (coproductOverFinsets X A) \<and>
-                               cop_finset_index x = S \<and>
-                               cop_finset_index y = T \<and>
-                               fst (F S T) (cop_finset_value x) = (cop_finset_value y))"
+  "colimit_prerelation X A F x y = (\<exists> S T a b. pointed_finset_triangle X S T \<and>
+                               a \<in> snd (A S) \<and> b \<in> snd (A T) \<and>
+                               x = fst (cop_finset_inclusion X A S) a \<and> 
+                               y = fst (cop_finset_inclusion X A T) b \<and> 
+                               fst (F S T) a = b)"
+
 
 definition colimit_relation where
   "colimit_relation X A F = (generated_equiv_rel (snd (coproductOverFinsets X A)) 
           (colimit_prerelation X A F))" 
 
 lemma colimit_relation_equiv : 
-    "equiv (snd (coproductOverFinsets X (\<lambda>k. fst (snd (cocone k)))))
-     {(x, y). colimit_relation X (\<lambda>k. fst (snd (cocone k))) F x y}"
+  assumes A_obj: "\<forall>S. pointed_finset X S \<longrightarrow> Obj' (A S)"
+  shows  "equiv (snd (coproductOverFinsets X A))
+     {(x, y). colimit_relation X A F x y}"
   unfolding colimit_relation_def
   apply (rule_tac generated_equiv_rel_equiv)
-  unfolding colimit_prerelation_def by auto
+  unfolding colimit_prerelation_def apply auto
+proof-
+  fix s S t T a
+  assume "pointed_finset_triangle X (s, S) (t, T)"
+  then have pfs : "pointed_finset X (s, S)"
+    unfolding pointed_finset_triangle_def
+    by simp
+  from \<open>pointed_finset_triangle X (s, S) (t, T)\<close>
+  have pft : "pointed_finset X (t, T)"
+    unfolding pointed_finset_triangle_def
+    by simp
+  assume "a \<in> snd (A (s, S))"
+  then have a_in_dom: "a \<in> snd (Dom' (cop_finset_inclusion X A (s, S)))"
+    using cop_finset_inclusion_dom [OF A_obj pfs] by simp
+  assume "fst (F (s, S) (t, T)) a \<in> snd (A (t, T))"
+  then have fa_in_dom : "fst (F (s, S) (t, T)) a \<in> snd (Dom' (cop_finset_inclusion X A (t, T)))"
+    using cop_finset_inclusion_dom [OF A_obj pft] by simp
+
+  show "fst (cop_finset_inclusion X A (s, S)) a \<in>
+          snd (coproductOverFinsets X A)"
+    apply (subst reverse_equality [OF cop_finset_inclusion_cod [OF A_obj pfs]])
+    using cop_finset_inclusion_arr [OF A_obj pfs]
+    unfolding Arr'_def setcat.Arr_def
+    using a_in_dom by auto
+  show "fst (cop_finset_inclusion X A (t, T)) (fst (F (s, S) (t, T)) a) \<in>
+          snd (coproductOverFinsets X A)"
+    apply (subst reverse_equality [OF cop_finset_inclusion_cod [OF A_obj pft]])
+    using cop_finset_inclusion_arr [OF A_obj pft]
+    unfolding Arr'_def setcat.Arr_def
+    using fa_in_dom by auto
+qed
+
+
+
 
 
 definition colimitOverFinsets :: "'a LC pointed_set \<Rightarrow> ('a LC pointed_set \<Rightarrow> 'a LC pointed_set) \<Rightarrow> 
@@ -3186,6 +3224,25 @@ definition colimitOverFinsets :: "'a LC pointed_set \<Rightarrow> ('a LC pointed
          quotient_by_equiv_rel
          (coproductOverFinsets X A)
           (colimit_relation X A F)"
+
+lemma colimitOverFinsets_obj : 
+  assumes cocone : "\<forall>S. pointed_finset X S \<longrightarrow> Obj' (A S)"
+     and "Obj' X"
+  shows "Obj' (colimitOverFinsets X A F)"
+  unfolding colimitOverFinsets_def
+proof-
+  have arr_proj: "Arr' (quotient_proj (coproductOverFinsets X A)
+          (colimit_relation X A F))" 
+    apply (rule_tac quot_proj_arr)
+    by (rule_tac cop_finset_obj [OF cocone \<open>Obj' X\<close>])
+  have "Obj' (Cod' (quotient_proj (coproductOverFinsets X A) (colimit_relation X A F)))"
+    using classical_category.Obj_Cod [OF ccpf arr_proj].
+  then show "Obj'
+     (quotient_by_equiv_rel (coproductOverFinsets X A)
+       (colimit_relation X A F))"
+    by simp
+qed
+
 
 definition colim_finset_inclusion :: "'a LC pointed_set \<Rightarrow> ('a LC pointed_set \<Rightarrow> 'a LC pointed_set) \<Rightarrow> 
             ('a LC pointed_set \<Rightarrow> 'a LC pointed_set \<Rightarrow> 'a LC parr) \<Rightarrow>'a LC pointed_set \<Rightarrow> 'a LC parr" where
@@ -3263,7 +3320,9 @@ lemma colim_finset_UP_map_arr : assumes
   using \<open>Obj' X\<close> apply simp
   using \<open>Obj' Z\<close> apply simp
    apply (rule_tac quot_sec_arr)
-  using colimit_relation_equiv apply blast
+    apply (rule_tac colimit_relation_equiv)
+  using cocone_obj
+  unfolding Arr'_def apply blast
    apply (rule_tac cop_finset_obj)
   using cocone_obj unfolding Arr'_def apply blast
   using \<open>Obj' X\<close> apply simp
@@ -3273,6 +3332,60 @@ lemma colim_finset_UP_map_arr : assumes
   using \<open>Obj' Z\<close> apply simp
   by simp
 
+lemma colim_relation_x_in_coprod :
+  assumes "colimit_prerelation X D F x y"
+  and D_obj : "\<forall>S. pointed_finset X S \<longrightarrow> Obj' (D S)"
+  shows "x \<in> snd (coproductOverFinsets X D) \<and>
+         y \<in> snd (coproductOverFinsets X D)"
+proof
+  obtain S T a b where ST_def: "pointed_finset_triangle X S T \<and>
+     a \<in> snd (D S) \<and>
+     b \<in> snd (D T) \<and>
+     x = fst (cop_finset_inclusion X D S) a \<and>
+     y = fst (cop_finset_inclusion X D T) b \<and> fst (F S T) a = b"
+    using \<open>colimit_prerelation X D F x y\<close>
+    unfolding colimit_prerelation_def by auto
+  from ST_def show "x \<in> snd (coproductOverFinsets X D)"
+  proof-
+    have a_in_dom: "a \<in> snd (Dom' (cop_finset_inclusion X D S))"
+      apply (subst cop_finset_inclusion_dom)
+      apply (simp add: D_obj)
+      using ST_def
+      unfolding pointed_finset_triangle_def apply simp
+      using ST_def by simp
+    have pfs : "pointed_finset X S"
+      using ST_def
+      unfolding pointed_finset_triangle_def by simp
+    show "x \<in> snd (coproductOverFinsets X D)"
+      apply (simp add: ST_def)
+      apply (subst reverse_equality [OF cop_finset_inclusion_cod])
+        apply (simp add: D_obj)
+      using pfs apply simp
+      using cop_finset_inclusion_arr [OF D_obj pfs]
+      unfolding Arr'_def setcat.Arr_def
+      using a_in_dom by auto
+  qed
+  from ST_def show "y \<in> snd (coproductOverFinsets X D)" 
+  proof-
+    have b_in_dom: "b \<in> snd (Dom' (cop_finset_inclusion X D T))"
+      apply (subst cop_finset_inclusion_dom)
+      apply (simp add: D_obj)
+      using ST_def
+      unfolding pointed_finset_triangle_def apply simp
+      using ST_def by simp
+    have pft : "pointed_finset X T"
+      using ST_def
+      unfolding pointed_finset_triangle_def by simp
+    show "y \<in> snd (coproductOverFinsets X D)"
+      apply (simp add: ST_def)
+      apply (subst reverse_equality [OF cop_finset_inclusion_cod])
+        apply (simp add: D_obj)
+      using pft apply simp
+      using cop_finset_inclusion_arr [OF D_obj pft]
+      unfolding Arr'_def setcat.Arr_def
+      using b_in_dom by auto
+  qed
+qed
 
 
 
@@ -3292,107 +3405,87 @@ proof-
   have "colimit_prerelation X D F x y"
     unfolding D_def
     using \<open>colimit_prerelation X (\<lambda>k. Dom' (cocone k)) F x y\<close>.
-  obtain S T where ST_def: "pointed_finset_triangle X S T \<and>
-        x \<in> snd (coproductOverFinsets X D) \<and>
-        y \<in> snd (coproductOverFinsets X D) \<and>
-        cop_finset_index x = S \<and>
-        cop_finset_index y = T \<and> fst (F S T) (cop_finset_value x) = cop_finset_value y"
+  have D_obj : "\<forall>S. pointed_finset X S \<longrightarrow> Obj' (D S)"
+    unfolding D_def
+    using cocone_obj
+    unfolding Arr'_def by blast
+
+  obtain S T a b where ST_def: "pointed_finset_triangle X S T \<and>
+     a \<in> snd (D S) \<and>
+     b \<in> snd (D T) \<and>
+     x = fst (cop_finset_inclusion X D S) a \<and>
+     y = fst (cop_finset_inclusion X D T) b \<and> fst (F S T) a = b"
     using \<open>colimit_prerelation X D F x y\<close>
     unfolding colimit_prerelation_def by auto
-  from ST_def have "x \<in> snd (coproductOverFinsets X D)" by simp
-  then have x_in_cop: "pointed_finset X (cop_finset_index x) \<and>
-    cop_finset_value x \<in> snd (D (cop_finset_index x)) \<and>
-    fst (cop_finset_inclusion X D (cop_finset_index x)) (cop_finset_value x) = x"
-    unfolding D_def
-    apply (rule_tac x_in_cop_finset_char)
-    using cocone_obj unfolding Arr'_def apply blast
-    using \<open>Obj' X\<close> by simp
-  from ST_def have "y \<in> snd (coproductOverFinsets X D)" by simp
-  then have y_in_cop: "pointed_finset X (cop_finset_index y) \<and>
-    cop_finset_value y \<in> snd (D (cop_finset_index y)) \<and>
-    fst (cop_finset_inclusion X D (cop_finset_index y)) (cop_finset_value y) = y"
-    unfolding D_def
-    apply (rule_tac x_in_cop_finset_char)
-    using cocone_obj unfolding Arr'_def apply blast
-    using \<open>Obj' X\<close> by simp
 
-  have inc_eq_x: " fst (cop_finset_inclusion X D (cop_finset_index x)) (cop_finset_value x) = x"
-    using x_in_cop by simp
+  from ST_def have "pointed_finset X S"
+    unfolding pointed_finset_triangle_def by simp
+  from ST_def have "pointed_finset X T"
+    unfolding pointed_finset_triangle_def by simp
 
-  have inc_eq_y: " fst (cop_finset_inclusion X D (cop_finset_index y)) (cop_finset_value y) = y"
-    using y_in_cop by simp
+  from ST_def have inc_eq_x : "x = fst (cop_finset_inclusion X D S) a"
+    by simp
+  from ST_def have inc_eq_y : "y = fst (cop_finset_inclusion X D T) b"
+    by simp
 
-  have comp_char_x_lemma : "Arr' (cop_finset_inclusion X D (cop_finset_index x)) \<and>
+  have "cocone T \<cdot> F S T = cocone S"
+    using cocone_arr ST_def by blast
+
+
+  have a_in_dom : "a \<in> snd (fst (snd (cop_finset_inclusion X D S)))"
+    using ST_def
+          cop_finset_inclusion_dom [OF D_obj \<open>pointed_finset X S\<close>]
+    by simp
+
+  have b_in_dom : "b \<in> snd (fst (snd (cop_finset_inclusion X D T)))"
+    using ST_def
+          cop_finset_inclusion_dom [OF D_obj \<open>pointed_finset X T\<close>]
+    by simp
+
+  from ST_def have "pointed_finset_triangle X S T  \<and> a \<in> snd (D S)"
+    by simp
+  then have a_in_dom2: "a \<in> snd (fst (snd (F S T)))"
+    using functoriality
+    unfolding finset_arrow_collection_def D_def
+    by presburger
+
+  have comp_helper_x : "Arr' (cop_finset_inclusion X D S) \<and>
             Arr' (coprod_finset_UP_map X cocone Z) \<and>
-            snd (snd (cop_finset_inclusion X D (cop_finset_index x))) =
+            snd (snd (cop_finset_inclusion X D S)) =
             fst (snd (coprod_finset_UP_map X cocone Z))"
     apply safe
-      apply (rule_tac cop_finset_inclusion_arr)
-    unfolding D_def
-    using cocone_obj Arr'_def apply blast
-    using x_in_cop apply simp
-     apply (rule_tac coprod_finset_UP_map_arr)
-    using cocone_obj apply simp
-    using \<open>Obj' X\<close> apply simp
-    using \<open>Obj' Z\<close> apply simp
-    apply (subst cop_finset_inclusion_cod)
-    using cocone_obj Arr'_def apply blast
-    using x_in_cop apply simp
-    apply (subst coprod_finset_UP_map_dom)
-    using cocone_obj apply simp
-    using \<open>Obj' X\<close> \<open>Obj' Z\<close> by simp_all
-
-  have comp_char_y_lemma : "Arr' (cop_finset_inclusion X D (cop_finset_index y)) \<and>
-            Arr' (coprod_finset_UP_map X cocone Z) \<and>
-            snd (snd (cop_finset_inclusion X D (cop_finset_index y))) =
-            fst (snd (coprod_finset_UP_map X cocone Z))"
-    apply safe
-      apply (rule_tac cop_finset_inclusion_arr)
-    unfolding D_def
-    using cocone_obj Arr'_def apply blast
-    using y_in_cop apply simp
-     apply (rule_tac coprod_finset_UP_map_arr)
-    using cocone_obj apply simp
-    using \<open>Obj' X\<close> apply simp
-    using \<open>Obj' Z\<close> apply simp
-    apply (subst cop_finset_inclusion_cod)
-    using cocone_obj Arr'_def apply blast
-    using y_in_cop apply simp
-    apply (subst coprod_finset_UP_map_dom)
-    using cocone_obj apply simp
-    using \<open>Obj' X\<close> \<open>Obj' Z\<close> by simp_all
-
-  have in_dom_x : "cop_list_value x
-    \<in> snd (Dom' (cop_finset_inclusion X D
-                       (cop_finset_index x)))"
-    apply (subst cop_finset_inclusion_dom)
-    unfolding D_def
-    using cocone_obj Arr'_def apply blast
-    using x_in_cop apply simp
-    using x_in_cop unfolding D_def by simp
-
-  have in_dom_y : "cop_list_value y
-    \<in> snd (Dom' (cop_finset_inclusion X D
-                       (cop_finset_index y)))"
-    apply (subst cop_finset_inclusion_dom)
-    unfolding D_def
-    using cocone_obj Arr'_def apply blast
-    using y_in_cop apply simp
-    using y_in_cop unfolding D_def by simp
+    using cop_finset_inclusion_arr [OF D_obj \<open>pointed_finset X S\<close>] apply simp
+    using coprod_finset_UP_map_arr [OF cocone_obj \<open>Obj' X\<close> \<open>Obj' Z\<close>] apply simp
+    using cop_finset_inclusion_cod [OF D_obj \<open>pointed_finset X S\<close>]
+          coprod_finset_UP_map_dom [OF cocone_obj \<open>Obj' X\<close> \<open>Obj' Z\<close>]
+          D_def
+    by simp
 
   have comp_char_x: "fst (coprod_finset_UP_map X cocone Z) 
-  (fst (cop_finset_inclusion X D (cop_finset_index x)) (cop_finset_value x)) =
+  (fst (cop_finset_inclusion X D (S)) (a)) =
         fst ((coprod_finset_UP_map X cocone Z) \<cdot> 
-       (cop_finset_inclusion X D (cop_finset_index x))) (cop_finset_value x)"
+       (cop_finset_inclusion X D (S))) (a)"
     unfolding Comp'_def
-    using comp_char_x_lemma in_dom_x by simp
+    by (simp add: comp_helper_x a_in_dom)
+
+  have comp_helper_y : "Arr' (cop_finset_inclusion X D T) \<and>
+            Arr' (coprod_finset_UP_map X cocone Z) \<and>
+            snd (snd (cop_finset_inclusion X D T)) =
+            fst (snd (coprod_finset_UP_map X cocone Z))"
+    apply safe
+    using cop_finset_inclusion_arr [OF D_obj \<open>pointed_finset X T\<close>] apply simp
+    using coprod_finset_UP_map_arr [OF cocone_obj \<open>Obj' X\<close> \<open>Obj' Z\<close>] apply simp
+    using cop_finset_inclusion_cod [OF D_obj \<open>pointed_finset X T\<close>]
+          coprod_finset_UP_map_dom [OF cocone_obj \<open>Obj' X\<close> \<open>Obj' Z\<close>]
+          D_def
+    by simp
 
   have comp_char_y: "fst (coprod_finset_UP_map X cocone Z) 
-  (fst (cop_finset_inclusion X D (cop_finset_index y)) (cop_finset_value y)) =
+  (fst (cop_finset_inclusion X D (T)) (b)) =
         fst ((coprod_finset_UP_map X cocone Z) \<cdot> 
-       (cop_finset_inclusion X D (cop_finset_index y))) (cop_finset_value y)"
+       (cop_finset_inclusion X D (T))) (b)"
     unfolding Comp'_def
-    using comp_char_y_lemma in_dom_y by simp
+    by (simp add: comp_helper_y b_in_dom)
 
   have UP: "Arr' (coprod_finset_UP_map X cocone Z) \<and>
   fst (snd (coprod_finset_UP_map X cocone Z)) =
@@ -3403,20 +3496,16 @@ proof-
        cocone S)"
     apply (rule_tac coprod_finset_UP_existence)
     using cocone_obj \<open>Obj' X\<close> \<open>Obj' Z\<close> by simp_all
-  then have UP_eq_x : "coprod_finset_UP_map X cocone Z \<cdot> cop_finset_inclusion X D (cop_finset_index x) =
-                  cocone (cop_finset_index x)"
+  then have UP_eq_x : "coprod_finset_UP_map X cocone Z \<cdot> cop_finset_inclusion X D (S) =
+                  cocone (S)"
     unfolding D_def
-    using x_in_cop by simp
+    using \<open>pointed_finset X S\<close> by blast
 
-  from UP have UP_eq_y : "coprod_finset_UP_map X cocone Z \<cdot> cop_finset_inclusion X D (cop_finset_index y) =
-                  cocone (cop_finset_index y)"
+  from UP have UP_eq_y : "coprod_finset_UP_map X cocone Z \<cdot> cop_finset_inclusion X D (T) =
+                  cocone (T)"
     unfolding D_def
-    using y_in_cop by simp
+    using \<open>pointed_finset X T\<close> by blast
 
-  from ST_def have "cop_finset_index x = S" by simp
-
-  have "cocone T \<cdot> F S T = cocone S"
-    using cocone_arr ST_def by blast
 
   have F_comp_char : "Arr' (F S T) \<and> Arr' (cocone T) \<and> snd (snd (F S T)) = fst (snd (cocone T))"
     apply safe
@@ -3429,26 +3518,15 @@ proof-
     using ST_def
     unfolding pointed_finset_triangle_def by blast
 
-  have "fst (snd (F S T)) = fst (snd (cocone S))"
-    using functoriality
-    unfolding finset_arrow_collection_def
-    using ST_def by blast
-  have "cop_finset_value x \<in> snd (fst (snd (cocone (cop_finset_index x))))"
-    using x_in_cop unfolding D_def by simp
-  then have val_in_dom: "cop_finset_value x \<in> snd (fst (snd (F S T)))"
-    using \<open>fst (snd (F S T)) = fst (snd (cocone S))\<close> ST_def by simp
-
   show "fst (coprod_finset_UP_map X cocone Z) x = fst (coprod_finset_UP_map X cocone Z) y"
-    apply (subst reverse_equality [OF inc_eq_x])
+    apply (subst inc_eq_x)
     apply (subst comp_char_x)
     apply (subst UP_eq_x)
-    apply (subst \<open>cop_finset_index x = S\<close>)
     apply (subst reverse_equality [OF \<open>cocone T \<cdot> F S T = cocone S\<close>])
     unfolding Comp'_def
-    using F_comp_char val_in_dom apply simp
-    using ST_def apply simp
-    apply (rule_tac reverse_equality)
-    apply (subst reverse_equality [OF inc_eq_y])
+    apply (simp add: F_comp_char a_in_dom2)
+    apply (simp add: ST_def)
+
     apply (subst comp_char_y)
     apply (subst UP_eq_y)
     using ST_def by simp
@@ -3474,7 +3552,9 @@ proof-
 
   have R_equiv : "equiv (snd A) {(x, y). R x y}"
     unfolding A_def R_def
-    using colimit_relation_equiv.
+    apply (rule_tac colimit_relation_equiv)
+    using cocone_obj
+    unfolding Arr'_def by blast
 
 
   define Q where "Q = (\<lambda>x y. x \<in> snd A \<and> y \<in> snd A \<and> fst cop_f x = fst cop_f y)" 
@@ -3483,8 +3563,12 @@ proof-
     unfolding Q_def equiv_def refl_on_def sym_def trans_def by auto
   have QR : "(\<forall>x y. colimit_prerelation X (\<lambda>k. Dom' (cocone k)) F x y \<longrightarrow> Q x y)" 
     unfolding Q_def apply auto
-    using colimit_prerelation_def A_def apply blast
-    using colimit_prerelation_def A_def apply blast
+    using colim_relation_x_in_coprod
+          cocone_obj 
+    unfolding Arr'_def A_def apply blast
+    using colim_relation_x_in_coprod
+          cocone_obj 
+    unfolding Arr'_def A_def apply blast
     unfolding cop_f_def
     apply (rule_tac colim_relation_up_map_eq)
     using cocone_obj apply simp
@@ -3547,7 +3631,8 @@ proof-
 
   have R_equiv : "equiv (snd A) {(x, y). R x y}"
     unfolding A_def R_def D_def
-    using colimit_relation_equiv.
+    using colimit_relation_equiv [OF D_obj]
+    unfolding D_def.
 
   have arr_sec: "Arr' (quotient_section A R)"
     apply (rule_tac quot_sec_arr)
@@ -3694,7 +3779,8 @@ proof-
 
   have R_equiv : "equiv (snd A) {(x, y). R x y}"
     unfolding A_def R_def D_def
-    using colimit_relation_equiv.
+    apply (rule_tac colimit_relation_equiv)
+    using D_obj D_def by simp
 
   have arr_sec: "Arr' (quotient_section A R)"
     apply (rule_tac quot_sec_arr)
@@ -3788,6 +3874,83 @@ proof
 qed
 
 
+lemma (in classical_category) seqE:
+  assumes "seq g f" 
+  shows "Arr (the f) \<and> Arr (the g) \<and> Dom (the g) = Cod (the f)"
+  apply (rule_tac seqE [OF \<open>seq g f\<close>])
+  unfolding arr_char dom_char cod_char
+  apply auto
+proof-
+  fix a b
+  assume "Arr a" "Arr b"
+  assume "Id (Dom a) = Id (Cod b)"
+  then have "Dom (Id (Dom a)) = Dom (Id (Cod b))" by simp
+  then show "Dom a = Cod b"
+    unfolding Dom_Id [OF Obj_Dom [OF \<open>Arr a\<close>]]
+    unfolding Dom_Id [OF Obj_Cod [OF \<open>Arr b\<close>]].
+qed
+
+
+
+lemma colim_finset_inclusion_fst :
+  assumes cocone_obj : "\<forall>S. pointed_finset X S \<longrightarrow> Obj' (A S)"
+      and "pointed_finset X S"
+and x_in_dom : "x \<in> snd (fst (snd (cop_finset_inclusion X A S)))"
+shows "fst (colim_finset_inclusion X A F S) x =
+       fst (quotient_proj (coproductOverFinsets X A) (colimit_relation X A F))
+        (fst (cop_finset_inclusion X A S) x)"
+  unfolding colim_finset_inclusion_def
+proof-
+  have comp_helper : "Arr' (the (Some (cop_finset_inclusion X A S))) \<and>
+            Arr' (the (Some (
+             (quotient_proj (coproductOverFinsets X A)
+               (colimit_relation X A F))))) \<and>
+            fst (snd (the (Some (
+             (quotient_proj (coproductOverFinsets X A)
+               (colimit_relation X A F)))))) = 
+            snd (snd (the (Some (cop_finset_inclusion X A S))))"
+    apply (rule_tac classical_category.seqE [OF ccpf])
+    unfolding reverse_equality [OF pointed_set_comp_def]
+    apply (subst comp_char)
+    unfolding arr_char
+    using cop_finset_inclusion_arr [OF cocone_obj \<open>pointed_finset X S\<close>]
+       apply simp
+    using quot_proj_arr [OF cop_finset_obj [OF cocone_obj 
+          pointed_finset_obj [OF \<open>pointed_finset X S\<close>]]]
+      apply simp
+     apply (subst dom_char)
+      apply (subst arr_char)
+    using quot_proj_arr [OF cop_finset_obj [OF cocone_obj 
+          pointed_finset_obj [OF \<open>pointed_finset X S\<close>]]]
+      apply simp
+     apply (subst cod_char)
+      apply (subst arr_char)
+    using cop_finset_inclusion_arr [OF cocone_obj \<open>pointed_finset X S\<close>]
+      apply simp
+    using cop_finset_inclusion_cod [OF cocone_obj \<open>pointed_finset X S\<close>]
+     apply simp
+    apply (subst reverse_equality [OF arr_char])
+    unfolding Option.option.sel
+    apply (subst reverse_equality [OF colim_finset_inclusion_def])
+    unfolding arr_char
+    apply simp
+    using colim_finset_inclusion_arr [OF cocone_obj \<open>pointed_finset X S\<close>].
+
+  define quot_proj_nosimp :: "'a LC \<times> 'a LC set
+      \<Rightarrow> ('a LC \<Rightarrow> 'a LC \<Rightarrow> bool) \<Rightarrow> ('a LC \<Rightarrow> 'a LC) \<times> ('a LC \<times> 'a LC set) \<times> 'a LC \<times> 'a LC set"
+    where "quot_proj_nosimp = quotient_proj"
+
+  show "fst (quotient_proj (coproductOverFinsets X A) (colimit_relation X A F) \<cdot>
+         cop_finset_inclusion X A S)
+     x =
+    fst (quotient_proj (coproductOverFinsets X A) (colimit_relation X A F))
+     (fst (cop_finset_inclusion X A S) x)"
+    unfolding Comp'_def
+    using comp_helper
+    unfolding reverse_equality [OF quot_proj_nosimp_def]
+    by (simp add: x_in_dom)
+qed
+
 
 
 
@@ -3797,6 +3960,88 @@ fun MkFunctor :: "'a comp \<Rightarrow> 'b comp \<Rightarrow> ('a \<Rightarrow> 
                  then f a
                  else partial_magma.null D)"
 
+
+
+
+
+
+
+context begin
+
+interpretation C: category pointed_set_comp
+  using is_category.
+
+lemma comp_eq_char2:
+  assumes arr_gf: "C.seq g f"
+      and arr_h : "C.arr h"
+      and dom_eq : "C.dom f = C.dom h"
+      and cod_eq : "C.cod g = C.cod h"
+   and EQ: "\<And>x. x \<in> snd (Dom' (the f)) \<Longrightarrow>
+                x \<in> snd (Dom' (the h)) \<Longrightarrow>
+               fst (the f) x \<in> snd (Dom' (the g)) \<Longrightarrow>
+               fst (the g) (fst (the f) x) = fst (the h) x"
+  shows "pointed_set_comp g f = h"
+  apply (subst comp_char)
+proof-
+  show arr_f: "C.arr f"
+    using C.seqE [OF arr_gf] by blast
+  show arr_g: "C.arr g"
+    using C.seqE [OF arr_gf] by blast
+  show seq : "C.dom g = C.cod f"
+    using C.seqE [OF arr_gf] by blast
+  have "the g \<cdot> the f = the h"
+    apply (rule_tac comp_eq_char)
+    using arr_g
+    unfolding arr_char apply simp
+    using arr_f
+    unfolding arr_char apply simp
+    using arr_h
+    unfolding arr_char apply simp
+  proof-
+    show dom_eq': "fst (snd (the f)) = fst (snd (the h))"
+      using dom_eq
+      unfolding dom_char [OF arr_f]
+                dom_char [OF arr_h]
+      by (simp add: Id'_def)
+    show cod_eq': "snd (snd (the g)) = snd (snd (the h))"
+      using cod_eq
+      unfolding cod_char [OF arr_g]
+                cod_char [OF arr_h]
+      by (simp add: Id'_def)
+    show seq': "fst (snd (the g)) = snd (snd (the f))"
+      using seq
+      unfolding cod_char [OF arr_f]
+                dom_char [OF arr_g]
+      by (simp add: Id'_def)
+    fix x
+    assume x_in_f : "x \<in> snd (fst (snd (the f)))"
+    show "fst (the g) (fst (the f) x) = fst (the h) x"
+      apply (rule_tac EQ)
+      using x_in_f apply simp
+      using x_in_f dom_eq' apply simp
+    proof-
+      have "Arr' (the f)"
+        using arr_f
+        unfolding arr_char by simp
+      then show "fst (the f) x \<in> snd (fst (snd (the g)))"
+        unfolding seq'
+        unfolding Arr'_def
+                  setcat.Arr_def
+        using x_in_f by auto
+    qed
+  qed
+  then show "Some (the g \<cdot> the f) = h"
+    apply simp
+    using \<open>C.arr h\<close>
+    unfolding arr_char
+    by simp
+qed
+
+        
+
+
+
+end
 
 
 end

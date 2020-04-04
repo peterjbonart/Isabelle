@@ -1187,7 +1187,8 @@ definition inclusion_inverse where
                          pointed_fin_set.comp pointed_finite_subcat F inclusionFunctor \<eta> \<epsilon>)"
 
 
-lemma "\<exists>\<eta> \<epsilon>.  equivalence_of_categories
+
+lemma finset_equivalence: "\<exists>\<eta> \<epsilon>.  equivalence_of_categories
        pointed_fin_set.comp pointed_finite_subcat inclusion_inverse inclusionFunctor \<eta> \<epsilon>"
 proof-
   have ex_F: "\<exists>F. (\<exists> \<eta> \<epsilon>.  equivalence_of_categories
@@ -1210,4 +1211,3 @@ end
 end
 
 
-end

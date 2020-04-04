@@ -10,7 +10,7 @@ begin
 
 
 
-
+context begin
 
 
 
@@ -55,14 +55,7 @@ fun interval :: "nat \<Rightarrow> 'a LC pointed_set" where
 lemma interval_obj : "n > 0 \<Longrightarrow> Obj' (interval n)"
   unfolding Obj'_def by simp
 
-fun MkFunctor :: "'a comp \<Rightarrow> 'b comp \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
-  "MkFunctor C D f a = 
-                 (if partial_magma.arr C a 
-                 then f a
-                 else partial_magma.null D)"
 
-
-term pointed_set.MkArr
 
 definition inclusionFunctor :: "gamma  \<Rightarrow> 'a LC parr option  " where
   "inclusionFunctor \<equiv> MkFunctor
@@ -1194,7 +1187,8 @@ definition inclusion_inverse where
                          pointed_fin_set.comp pointed_finite_subcat F inclusionFunctor \<eta> \<epsilon>)"
 
 
-lemma "\<exists>\<eta> \<epsilon>.  equivalence_of_categories
+
+lemma finset_equivalence: "\<exists>\<eta> \<epsilon>.  equivalence_of_categories
        pointed_fin_set.comp pointed_finite_subcat inclusion_inverse inclusionFunctor \<eta> \<epsilon>"
 proof-
   have ex_F: "\<exists>F. (\<exists> \<eta> \<epsilon>.  equivalence_of_categories
@@ -1211,7 +1205,8 @@ qed
 
 
 
-            
+
+end
 
 end
 
