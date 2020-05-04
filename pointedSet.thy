@@ -3,14 +3,62 @@ theory pointedSet
          "Category3.SetCat"
          "Category3.InitialTerminal"
          "Category3.Subcategory"
+         "Category3.NaturalTransformation"
          Gamma
+         SomeCategoryTheory
 begin
 
-
-lemma reverse_equality : "a = b \<Longrightarrow> b = a"
-  by simp
-
  
+
+
+definition generated_equiv_rel where
+  "generated_equiv_rel A R x y = (\<forall> Q. equiv A {(x,y). Q x y} \<longrightarrow> (\<forall>x y. R x y \<longrightarrow> Q x y) \<longrightarrow> Q x y)"
+
+lemma generated_equiv_rel_equiv : assumes "{(x,y). R x y} \<subseteq> A \<times> A"
+  shows "equiv A {(x,y). generated_equiv_rel A R x y}"
+  unfolding equiv_def refl_on_def sym_def trans_def
+  apply safe
+proof-
+  define Q where "Q = (\<lambda>x y. x \<in> A \<and> y \<in> A)"
+  have Q_equiv: "equiv A {(x,y). Q x y}"
+    unfolding Q_def equiv_def refl_on_def sym_def trans_def by simp
+  have RQ: "(\<forall>x y. R x y \<longrightarrow> Q x y)"
+    unfolding Q_def
+    using \<open>{(x,y). R x y} \<subseteq> A \<times> A\<close> by auto
+  fix a b
+  assume "generated_equiv_rel A R a b"
+  then have "Q a b"
+    unfolding generated_equiv_rel_def
+    using Q_equiv RQ by blast
+  then show "a \<in> A" unfolding Q_def by simp
+  from \<open>Q a b\<close> show "b \<in> A" unfolding Q_def by simp
+next
+  fix x
+  assume "x \<in> A"
+  show "generated_equiv_rel A R x x"
+    unfolding generated_equiv_rel_def equiv_def refl_on_def
+    using \<open>x \<in> A\<close> by simp
+next
+  show "\<And>x y. generated_equiv_rel A R x y \<Longrightarrow> generated_equiv_rel A R y x"
+    unfolding generated_equiv_rel_def apply auto
+    unfolding equiv_def sym_def by blast
+  show "\<And>x y z.
+       generated_equiv_rel A R x y \<Longrightarrow> generated_equiv_rel A R y z \<Longrightarrow> generated_equiv_rel A R x z"
+    unfolding generated_equiv_rel_def apply auto
+    unfolding equiv_def trans_def by blast
+qed
+
+
+lemma equiv_preimage: assumes Q_equiv: "equiv B {(x, y). Q x y}"
+  and f_restrict : "f ` A \<subseteq> B"
+  shows "equiv A {(x,y). x \<in> A \<and> y \<in> A \<and> Q (f x) (f y)}"
+  apply (rule_tac equivE [OF Q_equiv])
+  apply (rule_tac equivI)
+    apply (simp add: refl_on_def)
+  using f_restrict apply auto[1]
+  apply (simp add: sym_def)
+  unfolding trans_def by auto
+
 
 
 type_synonym 'a pointed_set = "'a \<times> ('a set)"
@@ -39,7 +87,7 @@ fun forget :: "'a pointed_arr \<Rightarrow> ('a \<Rightarrow> 'a) \<times> 'a se
 
 
 definition Obj'
-  where "Obj' X \<equiv> fst X \<in> (snd X)"
+  where "Obj' X = (fst X \<in> (snd X))"
 
 definition Arr'
   where "Arr' t = (setcat.Arr (forget t) \<and>
@@ -505,7 +553,7 @@ lemma pointed_product_obj:
   assumes "\<forall>n<length X. Obj' (get X n)" 
   shows "Obj' (pointed_product X)"
   unfolding Obj'_def
-  apply (simp add: get_rev_get)
+  apply simp
   using \<open>\<forall>n<length X. Obj' (get X n)\<close>
   unfolding Obj'_def.
 
@@ -536,14 +584,13 @@ proof-
   show "Obj' (fst (snd (prod_proj f k)))"
     unfolding prod_proj_def apply simp
     unfolding Obj'_def apply simp
-    apply (simp add: get_rev_get)
     using pointed.
   show "Obj' (snd (snd (prod_proj f k)))"
     unfolding prod_proj_def apply simp
     unfolding Obj'_def
     using pointed \<open>k < length f\<close> by simp
   have "(\<forall>n<length f. get (rev_get (length f) (\<lambda>n. fst (get f n))) n \<in> snd (get f n))"
-    apply (simp add: get_rev_get)
+    apply simp
     using pointed.
   then show "fst (prod_proj f k) (fst (fst (snd (prod_proj f k)))) = fst (snd (snd (prod_proj f k)))"
     unfolding prod_proj_def apply simp
@@ -576,9 +623,7 @@ proof-
     then have "fst (get cone n)
             \<in> snd X \<rightarrow> snd (get c n)"
       using cone \<open>n < length cone\<close> by simp
-    show "get (rev_get (length cone) (\<lambda>n. fst (get cone n) x)) n
-           \<in> snd (get (rev_get (length cone) (\<lambda>n. snd (snd (get cone n)))) n)"
-      apply (simp add: get_rev_get \<open>n < length cone\<close>)
+    show "fst (get cone n) x \<in> snd (snd (snd (get cone n)))"
       using cone unfolding Arr'_def setcat.Arr_def
       using \<open>fst (get cone n) \<in> snd X \<rightarrow> snd (get c n)\<close>
             \<open>x \<in> snd X\<close>
@@ -590,7 +635,6 @@ proof-
   show "Obj' (snd (snd (prod_UP_map cone X)))"
     unfolding prod_UP_map_def apply simp
     unfolding Obj'_def apply auto
-    apply (simp add: get_rev_get)
     apply (simp add: cone)
     using \<open>\<And>k. k < length cone \<Longrightarrow> Obj' (get c k) \<close>
     unfolding Obj'_def.
@@ -605,7 +649,7 @@ proof-
     unfolding Obj'_def apply simp
     apply (rule_tac getFaithful)
      apply simp
-    apply (simp add: get_rev_get)
+    apply simp
     using cone_pointed cone by simp
 qed
 
@@ -617,10 +661,13 @@ lemma prod_UP_map_cod : "Cod' (prod_UP_map cone X) = pointed_product (fmap Cod' 
   unfolding prod_UP_map_def by simp
 
 
-lemma productUP : "(\<forall>k<length cone. Arr' (get cone k) \<and> Dom' (get cone k) = X \<and> Cod' (get cone k) = get c k)
-    \<Longrightarrow> Obj' X \<Longrightarrow> length cone = length c \<Longrightarrow> \<exists>! f. Arr' f \<and> Dom' f = X \<and> Cod' f = (pointed_product c) \<and>
-    (\<forall>k<length cone. (prod_proj c k) \<cdot> f = get cone k )"
-proof
+
+lemma productUP_existence :"(\<forall>k<length cone. Arr' (get cone k) \<and> Dom' (get cone k) = X \<and> Cod' (get cone k) = get c k)
+    \<Longrightarrow> Obj' X \<Longrightarrow> length cone = length c \<Longrightarrow> Arr' (prod_UP_map cone X) \<and>
+    fst (snd (prod_UP_map cone X)) = X \<and>
+    snd (snd (prod_UP_map cone X)) = pointed_product c \<and>
+    (\<forall>k<length cone. prod_proj c k \<cdot> (prod_UP_map cone X) = get cone k)"
+proof-
   assume cone : "\<forall>k<length cone.
        Arr' (get cone k) \<and>
        fst (snd (get cone k)) = X \<and> snd (snd (get cone k)) = get c k"
@@ -640,7 +687,7 @@ proof
     unfolding prod_UP_map_def apply auto
       apply (rule_tac getFaithful)
        apply (simp add: \<open>length cone = length c\<close>)
-    by (simp_all add: \<open>length cone = length c\<close> get_rev_get cone)
+    by (simp_all add: \<open>length cone = length c\<close> cone)
 
   show "Arr' (prod_UP_map cone X) \<and>
     fst (snd (prod_UP_map cone X)) = X \<and>
@@ -682,7 +729,7 @@ proof
         using \<open>fst (snd (prod_UP_map cone X)) = X\<close> by simp
       have proj_def_lemma: "(\<forall>n<length c.
          get (rev_get (length cone) (\<lambda>n. fst (get cone n) x)) n \<in> snd (get c n))"
-        apply (simp add: get_rev_get \<open>length cone = length c\<close>)
+        apply (simp add: \<open>length cone = length c\<close>)
         apply auto
       proof-
         fix n
@@ -706,7 +753,39 @@ proof
         using get_rev_get \<open>k < length cone\<close> \<open>length cone = length c\<close> by auto
     qed
   qed
-  fix f
+qed
+
+lemma productUP_uniqueness: 
+    "\<forall>k<length cone. Arr' (get cone k) \<and> fst (snd (get cone k)) = X \<and>
+     snd (snd (get cone k)) = get c k \<Longrightarrow>
+         Obj' X \<Longrightarrow>
+         length cone = length c \<Longrightarrow>
+         Arr' f \<and>
+         fst (snd f) = X \<and>
+         snd (snd f) = pointed_product c \<and> (\<forall>k<length cone. prod_proj c k \<cdot> f = get cone k) \<Longrightarrow>
+         f = prod_UP_map cone X"
+proof-
+  assume cone : "\<forall>k<length cone.
+       Arr' (get cone k) \<and>
+       fst (snd (get cone k)) = X \<and> snd (snd (get cone k)) = get c k"
+  assume "Obj' X"
+  have c_obj: "\<forall>k < length cone. Obj' (get c k)"
+    using cone
+    unfolding Arr'_def by auto
+  assume "length cone = length c" 
+
+  have arr_up: "Arr' (prod_UP_map cone X)"
+    using prod_UP_map_arr [OF cone \<open>Obj' X\<close>].
+  have dom_up: "fst (snd (prod_UP_map cone X)) = X"
+    unfolding prod_UP_map_def by simp
+  have cod_up: "snd (snd (prod_UP_map cone X)) =
+    (Join (rev_get (length c) (\<lambda>n. fst (get c n))),
+     {Join xs |xs. length xs = length c \<and> (\<forall>n<length c. get xs n \<in> snd (get c n))})"
+    unfolding prod_UP_map_def apply auto
+      apply (rule_tac getFaithful)
+       apply (simp add: \<open>length cone = length c\<close>)
+    by (simp_all add: \<open>length cone = length c\<close> get_rev_get cone)
+
   assume f_def: "Arr' f \<and>
          fst (snd f) = X \<and>
          snd (snd f) = pointed_product c \<and>
@@ -771,6 +850,28 @@ proof
         using \<open>prod_proj c n \<cdot> f = get cone n\<close> by simp
     qed
   qed
+qed
+
+
+lemma productUP : "(\<forall>k<length cone. Arr' (get cone k) \<and> Dom' (get cone k) = X \<and> Cod' (get cone k) = get c k)
+    \<Longrightarrow> Obj' X \<Longrightarrow> length cone = length c \<Longrightarrow> \<exists>! f. Arr' f \<and> Dom' f = X \<and> Cod' f = (pointed_product c) \<and>
+    (\<forall>k<length cone. (prod_proj c k) \<cdot> f = get cone k )"
+proof
+  show "(\<forall>k<length cone. Arr' (get cone k) \<and> Dom' (get cone k) = X \<and> Cod' (get cone k) = get c k)
+    \<Longrightarrow> Obj' X \<Longrightarrow> length cone = length c \<Longrightarrow> Arr' (prod_UP_map cone X) \<and>
+    fst (snd (prod_UP_map cone X)) = X \<and>
+    snd (snd (prod_UP_map cone X)) = pointed_product c \<and>
+    (\<forall>k<length cone. prod_proj c k \<cdot> (prod_UP_map cone X) = get cone k)"
+    using productUP_existence.
+  show "\<And>f. \<forall>k<length cone. Arr' (get cone k) \<and> fst (snd (get cone k)) = X \<and> snd (snd (get cone k)) = get c k \<Longrightarrow>
+         Obj' X \<Longrightarrow>
+         length cone = length c \<Longrightarrow>
+         Arr' f \<and>
+         fst (snd f) = X \<and>
+         snd (snd f) = pointed_product c \<and> (\<forall>k<length cone. prod_proj c k \<cdot> f = get cone k) \<Longrightarrow>
+         f = prod_UP_map cone X"
+    using productUP_uniqueness.
+
 qed
 
 
@@ -1226,7 +1327,7 @@ qed
 fun subset_eq_relation:: "'a set \<Rightarrow> 'a set \<Rightarrow> ('a \<times> 'a) set" where
   "subset_eq_relation A B = {(a,b). a \<in> A \<and> b \<in> A \<and> (a = b \<or> (a \<in> B \<and> b \<in> B))}"
 
-lemma subst_eq_rel_equiv: "equiv A (subset_eq_relation A B)"
+lemma subset_eq_rel_equiv: "equiv A (subset_eq_relation A B)"
   unfolding equiv_def
   apply auto
 proof-
@@ -1245,10 +1346,10 @@ qed
 fun quotient_by_subset:: "'a pointed_set \<Rightarrow> 'a pointed_set \<Rightarrow> 'a pointed_set" where
   "quotient_by_subset A B = quotient_by_equiv_rel A (cur_rel (subset_eq_relation (snd A) (snd B)))"
 
-fun quot_subs_proj :: "'a pointed_set \<Rightarrow> 'a pointed_set \<Rightarrow> 'a parr" where
+definition quot_subs_proj :: "'a pointed_set \<Rightarrow> 'a pointed_set \<Rightarrow> 'a parr" where
   "quot_subs_proj A B = quotient_proj A (cur_rel (subset_eq_relation (snd A) (snd B)))"
 
-fun quot_subs_section :: "'a pointed_set \<Rightarrow> 'a pointed_set \<Rightarrow> 'a parr" where
+definition quot_subs_section :: "'a pointed_set \<Rightarrow> 'a pointed_set \<Rightarrow> 'a parr" where
   "quot_subs_section A B = quotient_section A (cur_rel (subset_eq_relation (snd A) (snd B)))"
 
 
@@ -1271,7 +1372,7 @@ qed
 lemma subset_quotient_is_subset : "snd (quotient_by_subset A B) \<subseteq> snd A"
   unfolding quotient_by_subset.simps
   apply (rule_tac quotient_is_subset)
-  using subst_eq_rel_equiv by auto
+  using subset_eq_rel_equiv by auto
 
 
 
@@ -1414,7 +1515,7 @@ proof-
       qed
       show "fst (cop_list_inclusion X A xs) x \<in> snd (snd (snd (cop_list_inclusion X A xs)))"
         unfolding cop_list_inclusion_def 
-        using \<open>pointed_list X xs\<close> \<open>x \<in> snd (A xs)\<close> apply simp
+        using \<open>pointed_list X xs\<close> \<open>x \<in> snd (A xs)\<close> apply (simp add: quot_subs_proj_def)
         apply (subst some_eq)
         unfolding coproductOverPointedLists_def apply simp
         apply (rule_tac exI)
@@ -1427,7 +1528,7 @@ proof-
         unfolding cop_list_inclusion_def
         using \<open>pointed_list X xs\<close> \<open>Obj' (A xs)\<close>
         unfolding Obj'_def apply simp
-        unfolding coproductOverPointedLists_def apply simp
+        unfolding coproductOverPointedLists_def apply (simp add: quot_subs_proj_def)
         apply (rule_tac exI)
         by auto
     qed
@@ -1458,7 +1559,7 @@ proof-
     unfolding cop_list_inclusion_def 
     using \<open>pointed_list X xs\<close> \<open>Obj' (A xs)\<close>
     unfolding Obj'_def apply simp
-    unfolding coproductOverPointedLists_def apply simp
+    unfolding coproductOverPointedLists_def apply (simp add: quot_subs_proj_def)
     apply (subst prop_eq) 
     by simp
 qed
@@ -1585,7 +1686,7 @@ proof-
   have inc_a_x: "fst (cop_list_inclusion X A xs) a = x" 
     apply (simp add: x'_def)
     unfolding cop_list_inclusion_def
-    using a_xs_def by simp
+    using a_xs_def by (simp add: quot_subs_proj_def)
 
   from \<open>P x\<close> have "x = x' \<or> ((\<exists>xs. x' = Join (fst (A xs) # xs) \<and> pointed_list X xs) \<and>
                              (\<exists>xs. x = Join (fst (A xs) # xs) \<and> pointed_list X xs))"
@@ -1784,7 +1885,7 @@ proof-
     fst (cocone xs) x"
             unfolding cop_list_inclusion_def
             using \<open>x \<noteq> fst (fst (snd (cocone xs)))\<close> 
-                  \<open>pointed_list X xs\<close> x_in_coc_dom apply simp
+                  \<open>pointed_list X xs\<close> x_in_coc_dom apply (simp add: quot_subs_proj_def)
             apply (subst some_eq)
             unfolding coprod_list_UP_map_def 
             using x_xs_in_cop by simp
@@ -1945,9 +2046,7 @@ proof-
     using finite_set_interval_bijection_char [OF \<open>Obj' A\<close> \<open>finite (snd A)\<close>]
     unfolding bij_betw_def 
     using \<open>snd A \<subseteq> snd X\<close> by auto
-  show "get (rev_get (finite_set_length A) (finite_set_interval_bijection A)) n \<in> snd X"
-    apply (subst get_rev_get)
-    using \<open>n < finite_set_length A\<close> apply simp
+  show "finite_set_interval_bijection A n \<in> snd X"
     using n_in_x.
 qed
 
@@ -1975,7 +2074,6 @@ proof
     using finite_set_interval_bijection_char [OF \<open>Obj' A\<close> \<open>finite (snd A)\<close>] by simp
   show "snd (list_to_finite_set (finite_set_to_list A)) = snd A"
     apply auto
-    apply (simp add: get_rev_get)
     using finite_set_interval_bijection_char [OF \<open>Obj' A\<close> \<open>finite (snd A)\<close>]
     unfolding bij_betw_def apply auto[1]
   proof-
@@ -1991,7 +2089,7 @@ proof
     proof
       show "i < finite_set_length A \<and>
     get (rev_get (finite_set_length A) (finite_set_interval_bijection A)) i = x"
-        using i_def by (simp add: get_rev_get)
+        using i_def by simp
     qed
   qed
 qed
@@ -2057,12 +2155,14 @@ proof-
     assume "a \<noteq> fst (A xs)"
     have inc_a_x: "fst (cop_list_inclusion X A xs) a = Join(a # xs)"
       unfolding cop_list_inclusion_def
-      using \<open>a \<in> snd (A xs)\<close> \<open>a \<noteq> fst (A xs)\<close> \<open>pointed_list X xs\<close> by auto
+      using \<open>a \<in> snd (A xs)\<close> \<open>a \<noteq> fst (A xs)\<close> \<open>pointed_list X xs\<close> apply auto
+      unfolding quot_subs_proj_def by auto
     have "a \<noteq> fst (A ys)"
       using \<open>a \<noteq> fst (A xs)\<close> \<open>A xs = A ys\<close> by simp
     have inc_a_y : "fst (cop_list_inclusion X A ys) a = Join (a # ys)"
       unfolding cop_list_inclusion_def
-      using \<open>a \<in> snd (A ys)\<close> \<open>a \<noteq> fst (A ys)\<close> \<open>pointed_list X ys\<close> by auto
+      using \<open>a \<in> snd (A ys)\<close> \<open>a \<noteq> fst (A ys)\<close> \<open>pointed_list X ys\<close> apply auto
+      unfolding quot_subs_proj_def by auto
     from inc_a_x and inc_a_y show "finset_relation (snd (coproductOverPointedLists X A)) (fst (cop_list_inclusion X A xs) a)
      (fst (cop_list_inclusion X A ys) a)"
       using goal1 goal2 finset_eq by simp
@@ -2955,10 +3055,6 @@ lemma dom_char : "partial_magma.arr pointed_set_comp f \<Longrightarrow>
   using ccpf apply blast
   by simp
 
-lemma reverse_dom_char : "partial_magma.arr pointed_set_comp f \<Longrightarrow>
-        Some (Id' (fst (snd (the f)))) = 
-        partial_magma.dom pointed_set_comp f"
-  by (simp add: dom_char)
 
 lemma cod_char : "partial_magma.arr pointed_set_comp f \<Longrightarrow>
          partial_magma.cod pointed_set_comp f = 
@@ -2968,10 +3064,6 @@ lemma cod_char : "partial_magma.arr pointed_set_comp f \<Longrightarrow>
   using ccpf apply blast
   by simp
 
-lemma reverse_cod_char : "partial_magma.arr pointed_set_comp f \<Longrightarrow>
-         Some (Id' (snd (snd (the f)))) =
-         partial_magma.cod pointed_set_comp f"
-  by (simp add: cod_char)
 
 
 lemma seq_char : "partial_magma.arr pointed_set_comp f \<Longrightarrow>
@@ -2986,9 +3078,9 @@ proof-
                   partial_magma.cod pointed_set_comp f"
 
   have "Some (Id' (fst (snd (the g)))) = Some (Id' ( snd (snd (the f))))"
-    apply (subst reverse_dom_char)
+    apply (subst reverse_equality [OF dom_char])
     apply (simp add: arr_g)
-    apply (subst reverse_cod_char)
+    apply (subst reverse_equality [OF cod_char])
      apply (simp add: arr_f)
     using seq.
   then show "fst (snd (the g)) = snd (snd (the f))"
@@ -3039,6 +3131,7 @@ proof-
     Some (the g \<cdot> the f)"
     by auto
 qed
+
 
 
 definition FiniteArr' where
@@ -3113,42 +3206,7 @@ end
 
 section "Colimit over finite sets"
 
-definition generated_equiv_rel where
-  "generated_equiv_rel A R x y = (\<forall> Q. equiv A {(x,y). Q x y} \<longrightarrow> (\<forall>x y. R x y \<longrightarrow> Q x y) \<longrightarrow> Q x y)"
 
-lemma generated_equiv_rel_equiv : assumes "{(x,y). R x y} \<subseteq> A \<times> A"
-  shows "equiv A {(x,y). generated_equiv_rel A R x y}"
-  unfolding equiv_def refl_on_def sym_def trans_def
-  apply safe
-proof-
-  define Q where "Q = (\<lambda>x y. x \<in> A \<and> y \<in> A)"
-  have Q_equiv: "equiv A {(x,y). Q x y}"
-    unfolding Q_def equiv_def refl_on_def sym_def trans_def by simp
-  have RQ: "(\<forall>x y. R x y \<longrightarrow> Q x y)"
-    unfolding Q_def
-    using \<open>{(x,y). R x y} \<subseteq> A \<times> A\<close> by auto
-  fix a b
-  assume "generated_equiv_rel A R a b"
-  then have "Q a b"
-    unfolding generated_equiv_rel_def
-    using Q_equiv RQ by blast
-  then show "a \<in> A" unfolding Q_def by simp
-  from \<open>Q a b\<close> show "b \<in> A" unfolding Q_def by simp
-next
-  fix x
-  assume "x \<in> A"
-  show "generated_equiv_rel A R x x"
-    unfolding generated_equiv_rel_def equiv_def refl_on_def
-    using \<open>x \<in> A\<close> by simp
-next
-  show "\<And>x y. generated_equiv_rel A R x y \<Longrightarrow> generated_equiv_rel A R y x"
-    unfolding generated_equiv_rel_def apply auto
-    unfolding equiv_def sym_def by blast
-  show "\<And>x y z.
-       generated_equiv_rel A R x y \<Longrightarrow> generated_equiv_rel A R y z \<Longrightarrow> generated_equiv_rel A R x z"
-    unfolding generated_equiv_rel_def apply auto
-    unfolding equiv_def trans_def by blast
-qed
 
 
 definition pointed_finset_triangle where
@@ -3954,12 +4012,6 @@ qed
 
 
 
-fun MkFunctor :: "'a comp \<Rightarrow> 'b comp \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
-  "MkFunctor C D f a = 
-                 (if partial_magma.arr C a 
-                 then f a
-                 else partial_magma.null D)"
-
 
 
 
@@ -3970,6 +4022,43 @@ context begin
 
 interpretation C: category pointed_set_comp
   using is_category.
+
+
+lemma Dom_dom : assumes "C.arr f"
+  shows "Dom' (the f) = Dom' (the (C.dom f))"
+  unfolding dom_char [OF \<open>C.arr f\<close>]
+  by (simp add: Id'_def)
+
+lemma Dom_cod : assumes "C.arr f"
+  shows "Cod' (the f) = Dom' (the (C.cod f))"
+  unfolding cod_char [OF \<open>C.arr f\<close>]
+  by (simp add: Id'_def)
+
+lemma Cod_cod : assumes "C.arr f"
+  shows "Cod' (the f) = Cod' (the (C.cod f))"
+  unfolding cod_char [OF \<open>C.arr f\<close>]
+  by (simp add: Id'_def)
+
+
+lemma fst_comp_char : assumes "C.seq g f"
+  and x_in_dom : "x \<in> snd (fst (snd (the f)))"
+  shows "fst (the (pointed_set_comp g f)) x =
+         fst (the g) (fst (the f) x)"
+  apply (subst comp_char)
+  using C.seqE [OF \<open>C.seq g f\<close>] apply blast
+  using C.seqE [OF \<open>C.seq g f\<close>] apply blast
+  using C.seqE [OF \<open>C.seq g f\<close>] apply blast
+proof-
+  have "Arr' (the f) \<and> Arr' (the g) \<and> snd (snd (the f)) = fst (snd (the g))"
+    apply (rule_tac C.seqE [OF \<open>C.seq g f\<close>])
+    unfolding dom_char cod_char
+    unfolding arr_char
+    by (simp add: Id'_def)
+  then show "fst (the (Some (the g \<cdot> the f))) x = fst (the g) (fst (the f) x)"
+    unfolding Comp'_def
+    by (simp add: x_in_dom)
+qed
+
 
 lemma comp_eq_char2:
   assumes arr_gf: "C.seq g f"
@@ -4037,14 +4126,171 @@ proof-
     by simp
 qed
 
-        
+
+lemma arr_x_in_dom : assumes "C.arr f"
+  and x_in_dom: "x \<in> snd (Dom' (the f))" 
+  shows "fst (the f) x \<in> snd (Cod' (the f))"
+  using \<open>C.arr f\<close>
+  unfolding arr_char Arr'_def setcat.Arr_def
+  using x_in_dom by auto
+
+lemma arr_x_in_dom' : assumes "C.arr f"
+   and dom_eq: "Dom' (the f) = A" 
+   and cod_eq: "Cod' (the f) = B"
+   and x_in_dom: "x \<in> snd A"
+ shows "fst (the f) x \<in> snd B"
+  unfolding reverse_equality [OF cod_eq]
+  apply (rule_tac arr_x_in_dom)
+  using \<open>C.arr f\<close> apply simp
+  using dom_eq x_in_dom by simp
+
+
+
+lemma in_hom_basepoint_eq : assumes in_hom : "C.in_hom f a b"
+  shows "fst (the f) (fst (Dom' (the a))) = fst (Dom' (the b))"
+  apply (rule_tac C.in_homE [OF in_hom])
+  unfolding dom_char cod_char
+  unfolding arr_char
+proof-
+  assume "f \<noteq> None \<and> Arr' (the f)"
+  then have eqf: "fst (the f) (fst (fst (snd (the f)))) = fst (snd (snd (the f)))"
+    unfolding Arr'_def by simp
+  assume "Some (Id' (fst (snd (the f)))) = a"
+  from reverse_equality [OF this]
+  have eqa: "(fst (snd (the a))) = fst (snd (the f))"
+    unfolding Id'_def by simp
+  assume "Some (Id' (snd (snd (the f)))) = b"
+  from reverse_equality [OF this]
+  have eqb: "(fst (snd (the b))) = snd (snd (the f))"
+    unfolding Id'_def by simp
+  show "fst (the f) (fst (fst (snd (the a)))) = fst (fst (snd (the b)))"
+    unfolding eqa eqb
+    using eqf.
+qed
+
+
+(*
+lemma not_in_dom_undefined : assumes "C.arr f"
+  and "x \<notin> snd (Dom' (the f))"
+shows "fst (the f) x = undefined"
+  using \<open>C.arr f\<close>
+  unfolding arr_char Arr'_def setcat.Arr_def extensional_def
+  using \<open>x \<notin> snd (Dom' (the f))\<close>
+  by auto
+*)
+
+end
+
+
+context begin
+
+
+interpretation sc : category setcat.comp
+  using setcat.is_category.
+
+interpretation P : category pointed_set_comp
+  using is_category.
+
+definition forget_functor1 where
+  "forget_functor1 = MkFunctor pointed_set_comp setcat.comp
+                   (\<lambda>f. (forget (the f)))"
+
+lemma forget_functor1 : "functor pointed_set_comp setcat.comp forget_functor1"
+  unfolding functor_def
+  apply (simp add: is_category setcat.is_category)
+  unfolding functor_axioms_def
+  apply auto
+      apply (simp add: forget_functor1_def)
+proof-
+  show arr: "\<And>f. P.arr f \<Longrightarrow> sc.arr (forget_functor1 f)"
+    unfolding forget_functor1_def apply simp
+    unfolding reverse_equality [OF forget.simps]
+    unfolding setcat.arr_char arr_char 
+    apply (rule_tac forget_arr)
+    by simp
+  show dom: "\<And>f. P.arr f \<Longrightarrow> sc.dom (forget_functor1 f) = forget_functor1 (P.dom f)"
+    unfolding setcat.dom_char
+    apply (simp add: arr)
+    unfolding forget_functor1_def apply simp
+    unfolding dom_char by (simp add: Id'_def)
+  show cod: "\<And>f. P.arr f \<Longrightarrow> sc.cod (forget_functor1 f) = forget_functor1 (P.cod f)"
+    unfolding setcat.cod_char
+    apply (simp add: arr)
+    unfolding forget_functor1_def apply simp
+    unfolding cod_char by (simp add: Id'_def)
+  fix g f
+  assume "P.seq g f"
+  have arr_fgf: "sc.seq (forget_functor1 g) (forget_functor1 f)"
+    apply (rule_tac P.seqE [OF \<open>P.seq g f\<close>])
+    apply (rule_tac sc.seqI)
+    using arr apply blast
+    using arr apply blast
+    unfolding dom cod by simp
+
+  have dom_eq : "snd (fst (snd (the (pointed_set_comp g f)))) = snd (fst (snd (the f)))"
+    apply (subst Dom_dom [OF \<open>P.seq g f\<close>])
+    unfolding P.dom_comp [OF \<open>P.seq g f\<close>]
+    apply (rule_tac P.seqE [OF \<open>P.seq g f\<close>])
+    unfolding Dom_dom
+    by simp
+  have cod_eq : "snd (snd (snd (the (pointed_set_comp g f)))) = snd (snd (snd (the g)))"
+    apply (subst Cod_cod [OF \<open>P.seq g f\<close>])
+    unfolding P.cod_comp [OF \<open>P.seq g f\<close>]
+    apply (rule_tac P.seqE [OF \<open>P.seq g f\<close>])
+    unfolding Cod_cod
+    by simp
+
+  show "forget_functor1 (pointed_set_comp g f) = setcat.comp (forget_functor1 g) (forget_functor1 f)"
+    apply (rule_tac P.seqE [OF \<open>P.seq g f\<close>])
+    unfolding forget_functor1_def
+    apply simp
+    unfolding comp_char
+    apply simp
+    unfolding reverse_equality [OF forget.simps]
+    apply (subst forget_comp)
+    unfolding dom_char cod_char
+    unfolding arr_char
+    by (simp_all add: Id'_def)
+qed
+
+
+lemma SetCat_abstracted_category: "abstracted_category setcat.comp SetCat.Abs_arr SetCat.Rep_arr UNIV"
+  using Rep_arr_inverse Abs_arr_inverse by (unfold_locales, auto)
+
+
+interpretation AC : abstracted_category setcat.comp SetCat.Abs_arr SetCat.Rep_arr UNIV 
+  using SetCat_abstracted_category.
+
+definition setcat_comparison_functor where
+  "setcat_comparison_functor = AC.A_functor"
+
+lemma setcat_comparison_functor : "functor setcat.comp SetCat.comp setcat_comparison_functor"
+  unfolding setcat_comparison_functor_def SetCat.comp_def
+  using AC.A_functor.
+
+definition forget_functor where
+  "forget_functor = setcat_comparison_functor \<circ> forget_functor1"
+
+lemma forget_functor : "functor pointed_set_comp SetCat.comp forget_functor"
+  unfolding forget_functor_def
+  apply (rule_tac functor_comp)
+  using forget_functor1 apply simp
+  using setcat_comparison_functor.
+
+
 
 
 
 end
 
 
+
+
+
+
+
 end
+
 
 
 

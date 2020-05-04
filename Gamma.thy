@@ -20,11 +20,12 @@ fun app :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 
 fun rev_get :: "nat \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> 'a list" where
   "rev_get 0 f = []" |
-  "rev_get (Suc n) f = app (rev_get n f) [f n]"
+  "rev_get (Suc n) f = (f 0) # (rev_get n (\<lambda>k. f (Suc k)))"
 
 
 fun fmap :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list" where
   "fmap f xs = (rev_get (length xs) (\<lambda>n. f (get xs n)))"
+
 
 
 
@@ -33,9 +34,9 @@ lemma app_length : "length (app xs ys) = length xs + length ys"
   by simp_all
 
 lemma rev_get_length [simp] : "length (rev_get n f) = n"
-  apply (induction n)
+  apply (induction n arbitrary: f)
    apply simp
-  by (simp add: app_length)
+  by simp
 
 lemma getAppLemma : "n < length xs \<Longrightarrow> get (app xs ys) n = get xs n"
   apply (induction xs arbitrary: n)
@@ -54,31 +55,18 @@ lemma getAppLemma2 : "get (app xs ys) (length xs) = get ys 0"
   by simp_all
 
 
-
-
-lemma get_rev_get: "n < m \<Longrightarrow> get (rev_get m f) n = f n"
-proof (induction m)
-  case 0
-  then show "get (rev_get 0 f) n = f n" by simp
-next
-  fix m
-  assume ind: "(n < m \<Longrightarrow> get (rev_get m f) n = f n)"
-  assume "n < Suc m"
-  then have "n < m \<or> n = m" by auto
-  then show "get (rev_get (Suc m) f) n = f n"
-  proof
-    show "n < m \<Longrightarrow> get (rev_get (Suc m) f) n = f n"
-      apply simp
-      apply (subst getAppLemma)
-      apply simp
-      by (simp add: ind)
-    have H: "get (app (rev_get m f) [f m]) m = get (app (rev_get m f) [f m]) (length (rev_get m f))" by (simp add: rev_get_length)
-    show "n = m \<Longrightarrow> get (rev_get (Suc m) f) n = f n"
-      apply simp
-      apply (subst H)
-      apply (subst getAppLemma2)
-      by simp
-  qed
+lemma get_rev_get [simp]: "n < m \<Longrightarrow> get (rev_get m f) n = f n"
+  apply (induction m arbitrary: n f)
+   apply simp
+  apply simp
+proof-
+  fix m n
+  fix f :: "nat \<Rightarrow> 'a"
+  assume ind : "(\<And>n (f :: nat \<Rightarrow> 'a). n < m \<Longrightarrow> get (rev_get m f) n = f n)"
+  show "n < Suc m \<Longrightarrow> get (f 0 # rev_get m (\<lambda>k. f (Suc k))) n = f n"
+    apply (induction n)
+     apply simp
+    by (simp add: ind)
 qed
 
 
@@ -117,12 +105,23 @@ qed
 lemma rev_get_get : "rev_get (length xs) (get xs) = xs"
   apply (rule_tac getFaithful)
    apply simp
-  by (simp add: get_rev_get)
+  by simp
 
 lemma rev_get_independence : "(\<And> n. n < m \<Longrightarrow> f n = g n) \<Longrightarrow> rev_get m f = rev_get m g"
-  apply (induction m)
+  apply (induction m arbitrary: f g)
    apply simp
-  by simp
+proof-
+  fix m 
+  fix f :: "nat \<Rightarrow> 'a"
+  fix g :: "nat \<Rightarrow> 'a" 
+  assume ind : "(\<And> (f :: nat \<Rightarrow> 'a) (g :: nat \<Rightarrow> 'a). 
+            (\<And>n. n < m \<Longrightarrow> f n = g n) \<Longrightarrow> rev_get m f = rev_get m g)"
+  assume H: "(\<And>n. n < Suc m \<Longrightarrow> f n = g n)"
+  show "rev_get (Suc m) f = rev_get (Suc m) g"
+    apply (simp add: H)
+    apply (rule_tac ind)
+    by (simp add: H)
+qed
 
 
 locale fin_set
@@ -236,6 +235,22 @@ lemma is_classical_category : "classical_category Obj' Arr' Dom' Cod' Id' Comp'"
 
 lemma is_category : "category comp"
   using CC.is_functor functor.axioms(1) local.comp_def by auto
+
+lemma arr_char: "partial_magma.arr comp f = (f \<noteq> None \<and> Arr' (the f))"
+  unfolding comp_def
+  using CC.arr_char.
+
+lemma ide_char : "partial_magma.ide comp a = (Arr' (the a) \<and> a = Some (Id' (length (snd (the a)))))"
+  unfolding comp_def
+  using CC.ide_char.
+
+lemma dom_char: "partial_magma.dom comp f = (if CC.arr f then Some (Id' (length (snd (the f)))) else None)"
+  unfolding comp_def
+  using CC.dom_char.
+
+lemma cod_char: "partial_magma.cod comp f = (if CC.arr f then Some (Id' (fst (the f))) else None)"
+  unfolding comp_def
+  using CC.cod_char.
 
 
 lemma comp_char : "partial_magma.arr comp f \<Longrightarrow>
@@ -545,8 +560,9 @@ lemma comp_char : "partial_magma.arr comp f \<Longrightarrow>
   by (simp add: fin_set.comp_char)
 
 
-
 end
+
+
 
 
 end

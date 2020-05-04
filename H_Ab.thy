@@ -46,7 +46,7 @@ proof
     apply auto
      apply (rule_tac getFaithful)
     unfolding as_def apply simp
-     apply (simp_all add: get_rev_get)
+     apply simp_all
   proof-
     fix k
     assume "k < length xs"
@@ -64,65 +64,52 @@ proof
 qed
 
 
-
-
-
-
-
-section "Abelian Groups to Gammaset"
-
-locale GroupToGammaset =
-  G: comm_group G
-  for G:: "('a,'b) monoid_scheme"
+context comm_group
 begin
 
-interpretation pointed_set.
-
-
-term pointed_product
 
 definition merge_with_zeros :: "'a list \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> 'a list" where
-  "merge_with_zeros xs P = rev_get (length xs) (\<lambda>k. if P k then (get xs k) else \<one>\<^bsub>G\<^esub>)"
+  "merge_with_zeros xs P = rev_get (length xs) (\<lambda>k. if P k then (get xs k) else \<one>)"
 
 lemma merge_with_zeros_length [simp]: "length (merge_with_zeros xs P) = length xs"
   unfolding merge_with_zeros_def by simp
 
 lemma merge_with_zeros_add : "merge_with_zeros (a # as) P = 
-     (if P 0 then a else \<one>\<^bsub>G\<^esub>) # (merge_with_zeros as (\<lambda>i. P (Suc i)))"
+     (if P 0 then a else \<one>) # (merge_with_zeros as (\<lambda>i. P (Suc i)))"
   unfolding merge_with_zeros_def
   apply (rule_tac getFaithful)
    apply (simp add: app_length)
 proof-
   fix n
-  assume "n < length (rev_get (length (a # as)) (\<lambda>k. if P k then get (a # as) k else \<one>\<^bsub>G\<^esub>))"
+  assume "n < length (rev_get (length (a # as)) (\<lambda>k. if P k then get (a # as) k else \<one>))"
   then have "n < length (a # as)" by (simp add: app_length)
-  have "n < length (a # as) \<Longrightarrow> get (rev_get (length (a # as)) (\<lambda>k. if P k then get (a # as) k else \<one>\<^bsub>G\<^esub>)) n =
-         get ((if P 0 then a else \<one>\<^bsub>G\<^esub>) # rev_get (length as) (\<lambda>k. if P (Suc k) then get as k else \<one>\<^bsub>G\<^esub>)) n"
+  have "n < length (a # as) \<Longrightarrow> get (rev_get (length (a # as)) (\<lambda>k. if P k then get (a # as) k else \<one>)) n =
+         get ((if P 0 then a else \<one>) # rev_get (length as) (\<lambda>k. if P (Suc k) then get as k else \<one>)) n"
     apply (subst get_rev_get [OF \<open>n < length (a # as)\<close>])
     apply (induction n)
      apply simp
-    by (simp add: get_rev_get)
-  then show "get (rev_get (length (a # as)) (\<lambda>k. if P k then get (a # as) k else \<one>\<^bsub>G\<^esub>)) n =
-         get ((if P 0 then a else \<one>\<^bsub>G\<^esub>) # rev_get (length as) (\<lambda>k. if P (Suc k) then get as k else \<one>\<^bsub>G\<^esub>)) n"
+    by simp
+  then show "get (rev_get (length (a # as)) (\<lambda>k. if P k then get (a # as) k else \<one>)) n =
+         get ((if P 0 then a else \<one>) # rev_get (length as) (\<lambda>k. if P (Suc k) then get as k else \<one>)) n"
     using \<open>n < length (a # as)\<close> by simp
 qed
     
 
 fun sum :: "'a list \<Rightarrow> 'a" where
-  "sum [] = \<one>\<^bsub>G\<^esub>" |
-  "sum (x # xs) = (\<otimes>\<^bsub>G\<^esub>) x (sum xs)"
+  "sum [] = \<one>" |
+  "sum (x # xs) = (\<otimes>) x (sum xs)"
 
-lemma zero_sum: "\<forall>k < length xs. get xs k = \<one>\<^bsub>G\<^esub> \<Longrightarrow> sum xs = \<one>\<^bsub>G\<^esub>"
+lemma zero_sum: "\<forall>k < length xs. get xs k = \<one> \<Longrightarrow> sum xs = \<one>"
   apply (induction xs)
    apply simp
 proof-
   fix a xs
-  assume ind: "(\<forall>k<length xs. get xs k = \<one>\<^bsub>G\<^esub> \<Longrightarrow> local.sum xs = \<one>\<^bsub>G\<^esub>)"
-  assume hyp: "\<forall>k<length (a # xs). get (a # xs) k = \<one>\<^bsub>G\<^esub>"
-  from hyp have "\<forall>k<length xs. get xs k = \<one>\<^bsub>G\<^esub>" by auto
-  then have sum_1: "local.sum xs = \<one>\<^bsub>G\<^esub>" using ind by simp
-  from hyp have a_1: "a = \<one>\<^bsub>G\<^esub>" by auto
-  show "local.sum (a # xs) = \<one>\<^bsub>G\<^esub>"
+  assume ind: "(\<forall>k<length xs. get xs k = \<one> \<Longrightarrow> local.sum xs = \<one>)"
+  assume hyp: "\<forall>k<length (a # xs). get (a # xs) k = \<one>"
+  from hyp have "\<forall>k<length xs. get xs k = \<one>" by auto
+  then have sum_1: "local.sum xs = \<one>" using ind by simp
+  from hyp have a_1: "a = \<one>" by auto
+  show "local.sum (a # xs) = \<one>"
     using sum_1 a_1 by simp
 qed
 
@@ -131,56 +118,50 @@ qed
 
 
 
-lemma one_sum :" (i < length xs \<and> (\<forall>k < length xs. k \<noteq> i \<longrightarrow> get xs k = \<one>\<^bsub>G\<^esub>)) \<and> 
+lemma one_sum :" (i < length xs \<and> (\<forall>k < length xs. k \<noteq> i \<longrightarrow> get xs k = \<one>)) \<and> 
           get xs i \<in> carrier G \<Longrightarrow> sum xs = get xs i"
   apply (induction xs arbitrary: i)
    apply simp
   apply auto
 proof-
   fix a xs i
-  assume ind: "(\<And>i. i < length xs \<and> (\<forall>k<length xs. k \<noteq> i \<longrightarrow> get xs k = \<one>\<^bsub>G\<^esub>) \<and>
+  assume ind: "(\<And>i. i < length xs \<and> (\<forall>k<length xs. k \<noteq> i \<longrightarrow> get xs k = \<one>) \<and>
              get xs i \<in> carrier G \<Longrightarrow> local.sum xs = get xs i)"
   assume in_G: "get (a # xs) i \<in> carrier G"
   assume "i < Suc (length xs)"
-  assume hyp: "\<forall>k<Suc (length xs). k \<noteq> i \<longrightarrow> get (a # xs) k = \<one>\<^bsub>G\<^esub>" 
+  assume hyp: "\<forall>k<Suc (length xs). k \<noteq> i \<longrightarrow> get (a # xs) k = \<one>" 
   have "i > 0 \<or> i = 0" by auto
-  then show "a \<otimes>\<^bsub>G\<^esub> local.sum xs = get (a # xs) i"
+  then show "a \<otimes> local.sum xs = get (a # xs) i"
   proof
     assume "i > 0"
     then have "i = Suc (i-1)" by simp
     then obtain j where j_def: "i = Suc j" by auto 
     have j_in_G: "get xs j \<in> carrier G"
       using j_def in_G by simp
-    have "j < length xs \<and> (\<forall>k<length xs. k \<noteq> j \<longrightarrow> get xs k = \<one>\<^bsub>G\<^esub>) \<and> get xs j \<in> carrier G"
+    have "j < length xs \<and> (\<forall>k<length xs. k \<noteq> j \<longrightarrow> get xs k = \<one>) \<and> get xs j \<in> carrier G"
       apply safe
       using j_def \<open>i < Suc (length xs)\<close> apply simp
       using j_def hyp apply auto
       using j_in_G.
     then have sum_eq: "local.sum xs = get xs j"
       using ind by simp
-    from \<open>i > 0\<close> have a_eq: "a = \<one>\<^bsub>G\<^esub>"
+    from \<open>i > 0\<close> have a_eq: "a = \<one>"
       using hyp by auto
-    have "\<And>x. x \<in> carrier G \<Longrightarrow> \<one>\<^bsub>G\<^esub> \<otimes>\<^bsub>G\<^esub> x = x" by simp
-    show "a \<otimes>\<^bsub>G\<^esub> local.sum xs = get (a # xs) i"
+    have "\<And>x. x \<in> carrier G \<Longrightarrow> \<one> \<otimes> x = x" by simp
+    show "a \<otimes> local.sum xs = get (a # xs) i"
       apply (subst a_eq)
       apply (subst sum_eq)
       using j_in_G apply simp
       using j_def by simp
   next
     assume "i = 0"
-    have "local.sum xs = \<one>\<^bsub>G\<^esub>"
+    have "local.sum xs = \<one>"
       apply (rule_tac zero_sum)
       using hyp \<open>i = 0\<close> by auto
-    then show "a \<otimes>\<^bsub>G\<^esub> local.sum xs = get (a # xs) i"
+    then show "a \<otimes> local.sum xs = get (a # xs) i"
       using in_G \<open>i = 0\<close> by simp
   qed
 qed
-
-
-
-
-
-
 
 lemma sum_carrier : "\<forall>k < length xs. get xs k \<in> carrier G \<Longrightarrow> sum xs \<in> carrier G"
   apply (induction xs)
@@ -202,249 +183,64 @@ proof-
     using a_in_G sum_in_G by simp
 qed
 
-
-lemma app_sum : assumes ys_in_G: "\<forall>k < length ys. get ys k \<in> carrier G"
-  shows "\<forall>k < length xs. get xs k \<in> carrier G \<Longrightarrow> sum (app xs ys) = sum xs \<otimes>\<^bsub>G\<^esub> sum ys"
-  apply (induction xs)
-  using sum_carrier [OF ys_in_G] apply simp
-proof-
-  fix a xs
-  assume ind: "(\<forall>k<length xs. get xs k \<in> carrier G \<Longrightarrow> local.sum (app xs ys) = local.sum xs \<otimes>\<^bsub>G\<^esub> local.sum ys)"
-  assume hyp: "\<forall>k<length (a # xs). get (a # xs) k \<in> carrier G"
-  then have "\<forall>k<length xs. get xs k \<in> carrier G" by auto
-  then have ind_eq : "local.sum (app xs ys) = local.sum xs \<otimes>\<^bsub>G\<^esub> local.sum ys"
-    using ind by simp
-  have y_sum_in_G: "sum ys \<in> carrier G" using sum_carrier [OF ys_in_G].
-  have x_sum_in_G: "sum xs \<in> carrier G" using sum_carrier [OF \<open>\<forall>k<length xs. get xs k \<in> carrier G\<close>].
-  have a_in_G: "a \<in> carrier G" using hyp by auto
-  show "local.sum (app (a # xs) ys) = local.sum (a # xs) \<otimes>\<^bsub>G\<^esub> local.sum ys"
-    apply simp
-    apply (subst ind_eq)
-    using G.m_assoc [OF a_in_G x_sum_in_G y_sum_in_G]
-    by simp
-qed
-
-lemma app_induction: assumes start: "P []" 
-   and step: "(\<forall>a xs. P xs \<longrightarrow> P (app xs [a]))"
-                  shows "P ys"
-proof-
-  define n where "n = length (ys)" 
-  have "\<forall>xs. length xs = n \<longrightarrow> P xs"
-    apply (induction n) 
-    using start apply simp
-  proof-
-    fix n
-    assume ind: "\<forall>xs. length xs = n \<longrightarrow> P xs"
-    then have ind_rule : "\<And>xs. length xs = n \<Longrightarrow> P xs" by simp
-    show "\<forall>xs. length xs = Suc n \<longrightarrow> P xs"
-      apply auto
-    proof-
-      fix xs :: "'c list" 
-      assume "length xs = Suc n"
-      then obtain a ys where a_ys_def: "xs = app ys [a]"
-        by (metis rev_get.simps(2) rev_get_get)
-      from step have step_rule : "(P ys \<Longrightarrow> P (app ys [a]))" by simp
-      show "P xs"
-        apply (subst a_ys_def)
-        apply (rule_tac step_rule)
-        apply (rule_tac ind_rule)
-        using \<open>length xs = Suc n\<close> a_ys_def
-        by (simp add: app_length)
-    qed
-  qed
-  then show "P ys"
-    unfolding n_def by simp
-qed
-    
-
-
-
-
-
 lemma binary_sum_sum : "\<forall>k < length ys. get ys k \<in> carrier G \<Longrightarrow> 
              \<forall>k < length xs. get xs k \<in> carrier G \<Longrightarrow>
                  length xs = length ys \<Longrightarrow>
-               sum (rev_get (length xs) (\<lambda>k. get xs k \<otimes>\<^bsub>G\<^esub> get ys k)) = sum xs \<otimes>\<^bsub>G\<^esub> sum ys"
+               sum (rev_get (length xs) (\<lambda>k. get xs k \<otimes> get ys k)) = sum xs \<otimes> sum ys"
+  apply (induction xs arbitrary: ys)
+   apply simp
+  apply simp
 proof-
-  define P where "P = (\<lambda>xs. \<forall>ys. (\<forall>k < length ys. get ys k \<in> carrier G) \<longrightarrow>
-                 (\<forall>k < length xs. get xs k \<in> carrier G) \<longrightarrow>
-                 length xs = length ys \<longrightarrow>
-               sum (rev_get (length xs) (\<lambda>k. get xs k \<otimes>\<^bsub>G\<^esub> get ys k)) = sum xs \<otimes>\<^bsub>G\<^esub> sum ys)"
-  have "\<forall>xs. P xs"
-  proof
-    fix xs
-    show "P xs"
-      apply (rule_tac app_induction)
-    proof-
-      show "P []"
-        unfolding P_def
-        by simp
-      show "\<forall>a xs. P xs \<longrightarrow> P (app xs [a])"
-        unfolding P_def apply auto
-      proof-
-        fix a xs ys
-        assume ind: "\<forall>ys. (\<forall>k<length ys. get ys k \<in> carrier G) \<longrightarrow>
-            (\<forall>k<length xs. get xs k \<in> carrier G) \<longrightarrow>
-            length xs = length ys \<longrightarrow>
-            local.sum (rev_get (length ys) (\<lambda>k. get xs k \<otimes>\<^bsub>G\<^esub> get ys k)) = local.sum xs \<otimes>\<^bsub>G\<^esub> local.sum ys"
-        assume ys_in_G: "\<forall>k<length ys. get ys k \<in> carrier G"
-        assume xsa_in_G: "\<forall>k<length ys. get (app xs [a]) k \<in> carrier G"
-        assume length_eq: "length (app xs [a]) = length ys"
-        have xs_in_G: "\<forall>k < length xs. get xs k \<in> carrier G"
-          apply (rule_tac allI)
-        proof
-          fix k
-          assume "k < length xs"
-          then have "k < length (app xs [a])"
-            apply (subst app_length)
-            by simp
-          then have "k < length ys"
-            using length_eq by simp
-          then have "get (app xs [a]) k \<in> carrier G"
-            using xsa_in_G by simp
-          then show "get xs k \<in> carrier G"
-            using getAppLemma [OF \<open>k < length xs\<close>] by simp
-        qed
-        have "length xs < length ys"
-          unfolding reverse_equality [OF length_eq]
-                    app_length
-          by simp
-        then have "get (app xs [a]) (length xs) \<in> carrier G"
-          using xsa_in_G by simp
-        then have a_in_G: "a \<in> carrier G"
-          unfolding getAppLemma2 by simp
+  fix a xs ys
+  assume ind : "(\<And>ys. \<forall>k<length ys. get ys k \<in> carrier G \<Longrightarrow>
+              \<forall>k<length ys. get xs k \<in> carrier G \<Longrightarrow>
+              length xs = length ys \<Longrightarrow>
+              local.sum (rev_get (length ys) (\<lambda>k. get xs k \<otimes> get ys k)) =
+              local.sum xs \<otimes> local.sum ys)"
+  assume ys_in_G : "\<forall>k<length ys. get ys k \<in> carrier G"
+  assume a_xs_in_G : "\<forall>k<length ys. get (a # xs) k \<in> carrier G"
+  assume "Suc (length xs) = length ys"
+  then have "ys \<noteq> []" by auto
+  then obtain b zs where b_zs_def : "ys = b # zs" 
+    using sum.cases by blast
 
-        define zs where "zs = rev_get (length xs) (get ys)"
-        have "length zs = length xs"
-          unfolding zs_def by simp
+  have xs_in_G: "(\<forall>k<length xs. get xs k \<in> carrier G)"
+    using a_xs_in_G 
+    unfolding reverse_equality [OF \<open>Suc (length xs) = length ys\<close>]
+    by auto
+  have zs_in_G: "(\<forall>k<length zs. get zs k \<in> carrier G)"
+    using ys_in_G unfolding b_zs_def by auto[1]
+  have length_eq : "length xs = length zs"
+    using \<open>Suc (length xs) = length ys\<close>
+    unfolding b_zs_def by simp
 
-        define b where "b = get ys (length xs)"
-        have b_in_G : "b \<in> carrier G"
-          unfolding b_def
-          using ys_in_G length_eq
-          unfolding app_length by simp
+  have ind_eq: "local.sum (rev_get (length zs) (\<lambda>k. get xs k \<otimes> get zs k)) =
+              local.sum xs \<otimes> local.sum zs"
+    apply (rule_tac ind)
+      apply (rule_tac zs_in_G)
+    unfolding reverse_equality [OF length_eq]
+    using xs_in_G by simp_all
 
-        have "ys = app zs [b]"
-          apply (rule_tac getFaithful)
-          unfolding reverse_equality [OF length_eq]
-                    app_length
-                    zs_def
-           apply simp
-          apply simp
-        proof-
-          fix n
-          assume "n < Suc (length xs)"
-          then have "n < length xs \<or> n = length xs" by auto
-          then show "get ys n = get (app (rev_get (length xs) (get ys)) [b]) n"
-          proof
-            assume "n < length xs"
-            then have "n < length (rev_get (length xs) (get ys))" by simp
-            show "get ys n = get (app (rev_get (length xs) (get ys)) [b]) n"
-              apply (subst getAppLemma [OF \<open>n < length (rev_get (length xs) (get ys))\<close>])
-              using reverse_equality [OF get_rev_get [OF \<open>n < length xs\<close>]].
-          next
-            assume "n = length xs"
-            then have "n = length (rev_get (length xs) (get ys))" by simp
-            show "get ys n = get (app (rev_get (length xs) (get ys)) [b]) n"
-              apply (subst \<open>n = length xs\<close>)
-              apply (subst \<open>n = length (rev_get (length xs) (get ys))\<close>)
-              apply (subst getAppLemma2)
-              unfolding b_def by simp
-          qed
-        qed
-        have zs_in_G: "(\<forall>k<length zs. get zs k \<in> carrier G)"
-          unfolding zs_def apply (simp add: get_rev_get)
-          using ys_in_G length_eq
-          unfolding app_length by simp
-        then have ind_hyp: "(\<forall>k<length zs. get zs k \<in> carrier G) \<and>
-            (\<forall>k<length xs. get xs k \<in> carrier G) \<and>
-            length xs = length zs"
-          using xs_in_G zs_def by simp
-        then have zs_sum_eq: "sum (rev_get (length zs) (\<lambda>k. get xs k \<otimes>\<^bsub>G\<^esub> get zs k)) = sum xs \<otimes>\<^bsub>G\<^esub> sum zs"
-          using ind by simp 
+  have a_in_G : "a \<in> carrier G"
+    using a_xs_in_G \<open>Suc (length xs) = length ys\<close>
+    unfolding b_zs_def by auto
+  have b_in_G : "b \<in> carrier G"
+    using ys_in_G
+    unfolding b_zs_def by auto
+  have xs_sum_in_G: "sum xs \<in> carrier G"
+    using sum_carrier [OF xs_in_G].
+  have zs_sum_in_G: "sum zs \<in> carrier G"
+    using sum_carrier [OF zs_in_G].
 
-        have xs_sum_in_G: "sum xs \<in> carrier G"
-          using sum_carrier [OF xs_in_G].
-        have zs_sum_in_G: "sum zs \<in> carrier G"
-          using sum_carrier [OF zs_in_G].
-
-
-        have eq1: " local.sum (app xs [a]) \<otimes>\<^bsub>G\<^esub> local.sum ys = 
-          local.sum xs \<otimes>\<^bsub>G\<^esub> local.sum zs \<otimes>\<^bsub>G\<^esub> (a \<otimes>\<^bsub>G\<^esub> b)"
-          apply (subst \<open>ys = app zs [b]\<close>)
-          apply (subst app_sum)
-          using a_in_G apply simp
-          using xs_in_G apply simp
-          apply (subst app_sum)
-          using b_in_G apply simp
-          using zs_in_G apply simp
-          apply (simp add: a_in_G b_in_G)
-          apply (subst G.m_assoc [OF xs_sum_in_G a_in_G])
-          using zs_sum_in_G b_in_G apply simp
-          apply (subst G.m_assoc [OF xs_sum_in_G zs_sum_in_G])
-          using a_in_G b_in_G apply simp
-          apply (subst reverse_equality [OF G.m_assoc [OF a_in_G zs_sum_in_G b_in_G]])
-          apply (subst reverse_equality [OF G.m_assoc [OF zs_sum_in_G a_in_G b_in_G]])
-          using G.m_comm [OF a_in_G zs_sum_in_G] by simp
-
-        have eq2: "rev_get (length ys) (\<lambda>k. get (app xs [a]) k \<otimes>\<^bsub>G\<^esub> get ys k) =
-              app (rev_get (length zs) (\<lambda>k. get xs k \<otimes>\<^bsub>G\<^esub> get zs k )) [a \<otimes>\<^bsub>G\<^esub> b]"
-          apply (rule_tac getFaithful)
-          using length_eq
-          unfolding app_length zs_def apply simp
-          apply (simp add: get_rev_get)
-        proof-
-          fix n
-          assume "n < length ys"
-          then have "n < length xs \<or> n = length xs"
-            using length_eq
-            unfolding app_length by auto
-          then show "get (app xs [a]) n \<otimes>\<^bsub>G\<^esub> get ys n =
-         get (app (rev_get (length xs) (\<lambda>k. get xs k \<otimes>\<^bsub>G\<^esub> get (rev_get (length xs) (get ys)) k)) [a \<otimes>\<^bsub>G\<^esub> b]) n"
-          proof
-            assume "n < length xs"
-            then have nl: "n < length (rev_get (length xs) (\<lambda>k. get xs k \<otimes>\<^bsub>G\<^esub> get (rev_get (length xs) (get ys)) k))" 
-              by simp
-            show "get (app xs [a]) n \<otimes>\<^bsub>G\<^esub> get ys n =
-    get (app (rev_get (length xs) (\<lambda>k. get xs k \<otimes>\<^bsub>G\<^esub> get (rev_get (length xs) (get ys)) k)) [a \<otimes>\<^bsub>G\<^esub> b]) n"
-              unfolding getAppLemma [OF \<open>n < length xs\<close>]
-                        getAppLemma [OF nl]
-                        get_rev_get [OF \<open>n < length xs\<close>]
-              by simp
-          next
-            assume "n = length xs"
-            then have nl : "n = length (rev_get (length xs) (\<lambda>k. get xs k \<otimes>\<^bsub>G\<^esub> get (rev_get (length xs) (get ys)) k))" 
-              by simp
-            show "get (app xs [a]) n \<otimes>\<^bsub>G\<^esub> get ys n =
-    get (app (rev_get (length xs) (\<lambda>k. get xs k \<otimes>\<^bsub>G\<^esub> get (rev_get (length xs) (get ys)) k)) [a \<otimes>\<^bsub>G\<^esub> b]) n"
-              apply (subst \<open>n = length xs\<close>)
-              unfolding getAppLemma2
-              apply (rule_tac reverse_equality)
-              apply (subst nl)
-              unfolding getAppLemma2
-              apply (subst \<open>n = length xs\<close>)
-              unfolding b_def by simp
-          qed
-        qed
-        show "local.sum (rev_get (length ys) (\<lambda>k. get (app xs [a]) k \<otimes>\<^bsub>G\<^esub> get ys k)) =
-       local.sum (app xs [a]) \<otimes>\<^bsub>G\<^esub> local.sum ys"
-          apply (subst eq1)
-          apply (subst eq2)
-          apply (subst app_sum)
-            apply (simp add: a_in_G b_in_G)
-           apply (simp add: get_rev_get)
-          using zs_in_G xs_in_G \<open>length zs = length xs\<close> apply simp
-          apply (subst zs_sum_eq)
-          by (simp add: a_in_G b_in_G)
-      qed
-    qed
-  qed
-  then show "\<forall>k<length ys. get ys k \<in> carrier G \<Longrightarrow>
-    \<forall>k<length xs. get xs k \<in> carrier G \<Longrightarrow>
-    length xs = length ys \<Longrightarrow>
-    local.sum (rev_get (length xs) (\<lambda>k. get xs k \<otimes>\<^bsub>G\<^esub> get ys k)) = local.sum xs \<otimes>\<^bsub>G\<^esub> local.sum ys"
-    unfolding P_def by auto
+  show "local.sum (rev_get (length ys) (\<lambda>k. get (a # xs) k \<otimes> get ys k)) =
+       a \<otimes> local.sum xs \<otimes> local.sum ys"
+    using a_in_G b_in_G xs_sum_in_G zs_sum_in_G
+    unfolding b_zs_def apply simp
+    apply (subst ind_eq)
+    using m_assoc m_comm
+    by simp
 qed
+
 
 definition push_forward :: "nat \<times> nat list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
   "push_forward ns xs = rev_get (fst ns) (\<lambda>k. sum (merge_with_zeros xs (\<lambda>i. get (snd ns) i = k)))"
@@ -459,7 +255,7 @@ lemma push_forward_sum :
   apply (induction as)
    apply (simp add: push_forward_def)
    apply (subst zero_sum)
-    apply (simp add: get_rev_get)
+    apply simp
   unfolding merge_with_zeros_def
     apply simp
    apply simp
@@ -479,11 +275,10 @@ proof-
     using \<open>fin_set.Arr' ns\<close>
     unfolding fin_set.Arr'_def by simp
   have a_sum_eq: "a = sum (rev_get (fst ns)
-       (\<lambda>k. (if get (snd ns) 0 = k then a else \<one>\<^bsub>G\<^esub>)))"
+       (\<lambda>k. (if get (snd ns) 0 = k then a else \<one>)))"
     apply (subst one_sum)
      apply auto
     using \<open>get (snd ns) 0 < fst ns\<close> apply simp
-      apply (simp add: get_rev_get)
     apply (subst get_rev_get)
     using \<open>get (snd ns) 0 < fst ns\<close> apply simp
     using a_in_G apply simp
@@ -503,16 +298,16 @@ proof-
     using length_eq apply simp
     unfolding ms_def by simp
 
-  have eq1: " (rev_get (length (rev_get (fst ns) (\<lambda>k. if get (snd ns) 0 = k then a else \<one>\<^bsub>G\<^esub>)))
-       (\<lambda>k. get (rev_get (fst ns) (\<lambda>k. if get (snd ns) 0 = k then a else \<one>\<^bsub>G\<^esub>)) k \<otimes>\<^bsub>G\<^esub>
+  have eq1: " (rev_get (length (rev_get (fst ns) (\<lambda>k. if get (snd ns) 0 = k then a else \<one>)))
+       (\<lambda>k. get (rev_get (fst ns) (\<lambda>k. if get (snd ns) 0 = k then a else \<one>)) k \<otimes>
             get (push_forward (fst ns, ms) as) k)) = 
            (rev_get (fst ns)
-       (\<lambda>k. (if get (snd ns) 0 = k then a else \<one>\<^bsub>G\<^esub>) \<otimes>\<^bsub>G\<^esub>
+       (\<lambda>k. (if get (snd ns) 0 = k then a else \<one>) \<otimes>
             local.sum (merge_with_zeros as (\<lambda>i. get (snd ns) (Suc i) = k))))"
     apply (rule_tac getFaithful)
      apply simp
-    apply (simp add: get_rev_get)
-    unfolding push_forward_def apply (simp add: get_rev_get)
+    apply simp
+    unfolding push_forward_def apply simp
     unfolding ms_def by simp
 
   show "local.sum (push_forward ns (a # as)) = local.sum (a # as)"
@@ -526,24 +321,24 @@ proof-
   proof-
     show "\<forall>k<length (push_forward (fst ns, ms) as). get (push_forward (fst ns, ms) as) k \<in> carrier G"
       unfolding push_forward_def merge_with_zeros_def
-      apply (simp add: get_rev_get)
+      apply simp
       apply auto
       apply (rule_tac sum_carrier)
-      apply (simp add: get_rev_get)
+      apply simp
       using as_in_G by simp
-    show "\<forall>k<length (rev_get (fst ns) (\<lambda>k. if get (snd ns) 0 = k then a else \<one>\<^bsub>G\<^esub>)).
-       get (rev_get (fst ns) (\<lambda>k. if get (snd ns) 0 = k then a else \<one>\<^bsub>G\<^esub>)) k \<in> carrier G"
-      apply (simp add: get_rev_get)
+    show "\<forall>k<length (rev_get (fst ns) (\<lambda>k. if get (snd ns) 0 = k then a else \<one>)).
+       get (rev_get (fst ns) (\<lambda>k. if get (snd ns) 0 = k then a else \<one>)) k \<in> carrier G"
+      apply simp
       using a_in_G by simp
-    show "length (rev_get (fst ns) (\<lambda>k. if get (snd ns) 0 = k then a else \<one>\<^bsub>G\<^esub>)) = length (push_forward (fst ns, ms) as)"
+    show "length (rev_get (fst ns) (\<lambda>k. if get (snd ns) 0 = k then a else \<one>)) = length (push_forward (fst ns, ms) as)"
       unfolding push_forward_def by simp
     show "local.sum
-     (rev_get (length (rev_get (fst ns) (\<lambda>k. if get (snd ns) 0 = k then a else \<one>\<^bsub>G\<^esub>)))
-       (\<lambda>k. get (rev_get (fst ns) (\<lambda>k. if get (snd ns) 0 = k then a else \<one>\<^bsub>G\<^esub>)) k \<otimes>\<^bsub>G\<^esub>
+     (rev_get (length (rev_get (fst ns) (\<lambda>k. if get (snd ns) 0 = k then a else \<one>)))
+       (\<lambda>k. get (rev_get (fst ns) (\<lambda>k. if get (snd ns) 0 = k then a else \<one>)) k \<otimes>
             get (push_forward (fst ns, ms) as) k)) =
     local.sum
      (rev_get (fst ns)
-       (\<lambda>k. (if get (snd ns) 0 = k then a else \<one>\<^bsub>G\<^esub>) \<otimes>\<^bsub>G\<^esub>
+       (\<lambda>k. (if get (snd ns) 0 = k then a else \<one>) \<otimes>
             local.sum (merge_with_zeros as (\<lambda>i. get (snd ns) (Suc i) = k))))"
       apply (subst eq1)
       by simp
@@ -558,7 +353,7 @@ shows "get (push_forward f as) k \<in> carrier G"
   unfolding push_forward_def
   apply (simp add: get_rev_get [OF \<open>k < fst f\<close>])
   apply (rule_tac sum_carrier)
-  apply (simp add: merge_with_zeros_def get_rev_get)
+  apply (simp add: merge_with_zeros_def)
   using as_in_G by simp
 
 lemma push_forward_merge_with_zero : 
@@ -570,18 +365,18 @@ lemma push_forward_merge_with_zero :
   apply (subst push_forward_def)
   apply (rule_tac reverse_equality)
   apply (subst merge_with_zeros_def)
-  apply (simp add: get_rev_get)
+  apply simp
   apply auto
 proof-
   fix n
   assume "n < fst ns"
   assume "P n"
-  have list_eq: "rev_get (length as) (\<lambda>k. if get (snd ns) k = n then get as k else \<one>\<^bsub>G\<^esub>) =
+  have list_eq: "rev_get (length as) (\<lambda>k. if get (snd ns) k = n then get as k else \<one>) =
               (rev_get (length as) (\<lambda>k. if get (snd ns) k = n
-        then get (rev_get (length as) (\<lambda>k. if P (get (snd ns) k) then get as k else \<one>\<^bsub>G\<^esub>)) k else \<one>\<^bsub>G\<^esub>))"
+        then get (rev_get (length as) (\<lambda>k. if P (get (snd ns) k) then get as k else \<one>)) k else \<one>))"
     apply (rule_tac getFaithful)
      apply simp
-    by (simp add: get_rev_get \<open>P n\<close>)
+    by (simp add: \<open>P n\<close>)
   show "get (push_forward ns as) n =
          local.sum (merge_with_zeros (merge_with_zeros as (\<lambda>k. P (get (snd ns) k))) (\<lambda>i. get (snd ns) i = n))"
     unfolding merge_with_zeros_def push_forward_def 
@@ -592,12 +387,12 @@ next
   fix n
   assume "n < fst ns"
   assume "\<not> P n"
-  show "\<one>\<^bsub>G\<^esub> = local.sum (merge_with_zeros 
+  show "\<one> = local.sum (merge_with_zeros 
       (merge_with_zeros as (\<lambda>k. P (get (snd ns) k))) (\<lambda>i. get (snd ns) i = n))"
     apply (rule_tac reverse_equality [OF zero_sum])
     apply simp
     unfolding merge_with_zeros_def
-    by (simp add: get_rev_get \<open>\<not> P n\<close>)
+    by (simp add: \<open>\<not> P n\<close>)
 qed
 
 
@@ -605,7 +400,7 @@ lemma merge_with_zeros_carrier : assumes as_in_G: "\<forall>k<length as. get as 
   shows "\<forall>k < length (merge_with_zeros as P). get (merge_with_zeros as P) k \<in> carrier G"
   apply simp
   unfolding merge_with_zeros_def
-  by (simp add: get_rev_get as_in_G)
+  by (simp add: as_in_G)
 
 
 lemma push_forward_sum_with_prop : assumes
@@ -629,30 +424,30 @@ lemma push_forward_id : assumes "length as = n"
   unfolding push_forward_def
   apply (rule_tac getFaithful)
    apply (simp add: fin_set.Id'_def \<open>length as = n\<close>)
-  apply (simp add: get_rev_get)
+  apply simp
   unfolding fin_set.Id'_def 
   apply simp
   unfolding merge_with_zeros_def
 proof-
   fix m
   assume "m < n"
-  have eq1: "rev_get (length as) (\<lambda>k. if get (rev_get n (\<lambda>k. k)) k = m then get as k else \<one>\<^bsub>G\<^esub>) =
-        rev_get (length as) (\<lambda>k. if k = m then get as k else \<one>\<^bsub>G\<^esub>)"
+  have eq1: "rev_get (length as) (\<lambda>k. if get (rev_get n (\<lambda>k. k)) k = m then get as k else \<one>) =
+        rev_get (length as) (\<lambda>k. if k = m then get as k else \<one>)"
     apply (rule_tac getFaithful)
      apply simp
-    by (simp add: get_rev_get \<open>m < n\<close> \<open>length as = n\<close>)
-  show "local.sum (rev_get (length as) (\<lambda>k. if get (rev_get n (\<lambda>k. k)) k = m then get as k else \<one>\<^bsub>G\<^esub>)) =
+    by (simp add: \<open>m < n\<close> \<open>length as = n\<close>)
+  show "local.sum (rev_get (length as) (\<lambda>k. if get (rev_get n (\<lambda>k. k)) k = m then get as k else \<one>)) =
           get as m"
     apply (subst eq1)
     apply (subst one_sum)
      apply safe
     unfolding \<open>length as = n\<close>
     using \<open>m < n\<close> apply simp
-      apply (simp add: get_rev_get)
-    using \<open>m < n\<close> apply (simp add: get_rev_get)
+      apply simp
+    using \<open>m < n\<close> apply simp
     using as_in_G
     unfolding \<open>length as = n\<close> apply simp
-    using \<open>m < n\<close> by (simp add: get_rev_get)
+    using \<open>m < n\<close> by simp
 qed
 
 lemma push_forward_comp : 
@@ -665,7 +460,7 @@ lemma push_forward_comp :
   apply (subst push_forward_def)
   apply (rule_tac getFaithful)
    apply (simp add: fin_set.Comp'_def)
-  apply (simp add: get_rev_get)
+  apply simp
   apply (subst get_rev_get)
    apply (simp add: fin_set.Comp'_def)
 proof-
@@ -680,7 +475,7 @@ proof-
     apply simp
     unfolding merge_with_zeros_def
               \<open>length (snd g) = length as\<close>
-    by (simp add: get_rev_get)
+    by simp
 
 
   show "local.sum (merge_with_zeros as (\<lambda>i. get (snd (fin_set.Comp' f g)) i = n)) =
@@ -695,8 +490,20 @@ qed
 
 
 
+end
 
 
+
+
+section "Abelian Groups to Gammaset"
+
+locale GroupToGammaset =
+  G: comm_group G
+  for G:: "('a,'b) monoid_scheme"
+begin
+
+
+interpretation pointed_set.
 
 
 definition A :: "'a LC pointed_set" where 
@@ -711,13 +518,13 @@ definition A_tothe :: "nat \<Rightarrow> 'a LC pointed_set" where
 lemma A_tothe_obj : "Obj' (A_tothe n)"
   unfolding A_tothe_def
   apply (rule_tac pointed_product_obj)
-  apply (simp add: get_rev_get)
+  apply simp
   using lacan by simp
 
 lemma x_in_A_tothe_char : "x \<in> snd (A_tothe n) \<Longrightarrow> \<exists> xs. x = Join xs \<and>
              length xs = n \<and>
              (\<forall>k < n. get xs k \<in> snd A)"
-  unfolding A_tothe_def by (simp add: get_rev_get)
+  unfolding A_tothe_def by simp
 
 lemma xs_in_A_char : assumes xs_def:  "x = Join xs \<and> length xs = n \<and>
              (\<forall>k < n. get xs k \<in> snd A)"
@@ -750,7 +557,7 @@ qed
 
 
 definition H_on_arrow :: "gamma \<Rightarrow> 'a LC \<Rightarrow> 'a LC" where
-  "H_on_arrow f x = Join (fmap Just (push_forward (the f) (SOME as. Join (fmap Just as) = x)))"
+  "H_on_arrow f x = Join (fmap Just (G.push_forward (the f) (SOME as. Join (fmap Just as) = x)))"
 
 
 
@@ -794,13 +601,13 @@ proof-
   from as_def have as_in_G: "(\<forall>k<length as. get as k \<in> carrier G)"
     by simp
 
-  have pf_in_G: "\<forall>n<fst (the f). get (push_forward (the f) as) n \<in> carrier G"
+  have pf_in_G: "\<forall>n<fst (the f). get (G.push_forward (the f) as) n \<in> carrier G"
     apply auto
-    unfolding push_forward_def
-    apply (simp add: get_rev_get)
-    apply (rule_tac sum_carrier)
-    unfolding merge_with_zeros_def
-    apply (simp add: get_rev_get)
+    unfolding G.push_forward_def
+    apply simp
+    apply (rule_tac G.sum_carrier)
+    unfolding G.merge_with_zeros_def
+    apply simp
     using as_in_G by simp
 
   show "fst (the (HFunctor f)) x \<in> snd (snd (snd (the (HFunctor f))))"
@@ -809,7 +616,7 @@ proof-
     unfolding MkArr_def apply (simp add: x_in_dom)
     unfolding H_on_arrow_def
     apply (subst some_as)
-    unfolding A_tothe_def apply (simp add: get_rev_get)
+    unfolding A_tothe_def apply simp
     unfolding A_def apply simp
     using pf_in_G by simp
 next
@@ -830,7 +637,7 @@ next
       unfolding A_tothe_def apply simp
       apply (rule_tac getFaithful)
        apply simp
-      apply (simp add: get_rev_get)
+      apply simp
       unfolding A_def by simp
     have some_eq: "(SOME as. Join (fmap Just as) = fst (A_tothe (length (snd (the f))))) =
                       rev_get (length (snd (the f))) (\<lambda>k. \<one>\<^bsub>G\<^esub>)"
@@ -844,15 +651,15 @@ next
       show "as = rev_get (length (snd (the f))) (\<lambda>k. \<one>\<^bsub>G\<^esub>)" 
         using fmap_preserves_inj [OF fmap_eq] by simp
     qed
-    have eq1: "(push_forward (the f) (rev_get (length (snd (the f))) (\<lambda>k. \<one>\<^bsub>G\<^esub>))) = 
+    have eq1: "(G.push_forward (the f) (rev_get (length (snd (the f))) (\<lambda>k. \<one>\<^bsub>G\<^esub>))) = 
             (rev_get (fst (the f)) (\<lambda>k. \<one>\<^bsub>G\<^esub>))"
-      unfolding push_forward_def
+      unfolding G.push_forward_def
       apply (rule_tac getFaithful)
        apply simp
-      apply (simp add: get_rev_get)
-      apply (rule_tac zero_sum)
-      unfolding merge_with_zeros_def
-      by (simp add: get_rev_get)
+      apply simp
+      apply (rule_tac G.zero_sum)
+      unfolding G.merge_with_zeros_def
+      by simp
     show "H_on_arrow f (fst (A_tothe (length (snd (the f))))) = fst (A_tothe (fst (the f)))"
       unfolding H_on_arrow_def
       apply (subst some_eq)
@@ -909,7 +716,7 @@ proof-
     apply (simp add: arr_id x_in_dom)
     unfolding H_on_arrow_def some_eq
     apply simp
-    apply (subst push_forward_id)
+    apply (subst G.push_forward_id)
     using as_def xs_def apply (simp add: fin_set.Id'_def)
     using as_def apply simp
     using x_in_dom
@@ -1080,16 +887,16 @@ proof-
     unfolding HFunctor_def MkArr_def by (simp add: arr_f arr_g Hf_x_in_dom)
 
   have some_eq : "(SOME as.
-             Join (fmap Just as) = Join (fmap Just (push_forward (the f) (SOME as. Join (fmap Just as) = x)))) =
-           push_forward (the f) (SOME as. Join (fmap Just as) = x)"
+             Join (fmap Just as) = Join (fmap Just (G.push_forward (the f) (SOME as. Join (fmap Just as) = x)))) =
+           G.push_forward (the f) (SOME as. Join (fmap Just as) = x)"
   proof
-    show "Join (fmap Just (push_forward (the f) (SOME as. Join (fmap Just as) = x))) =
-    Join (fmap Just (push_forward (the f) (SOME as. Join (fmap Just as) = x)))"
+    show "Join (fmap Just (G.push_forward (the f) (SOME as. Join (fmap Just as) = x))) =
+    Join (fmap Just (G.push_forward (the f) (SOME as. Join (fmap Just as) = x)))"
       by simp
     fix as
-    assume "Join (fmap Just as) = Join (fmap Just (push_forward (the f) (SOME as. Join (fmap Just as) = x)))"
-    then have fmap_eq: "fmap Just as = fmap Just (push_forward (the f) (SOME as. Join (fmap Just as) = x))" by simp
-    then show "as = push_forward (the f) (SOME as. Join (fmap Just as) = x)"
+    assume "Join (fmap Just as) = Join (fmap Just (G.push_forward (the f) (SOME as. Join (fmap Just as) = x)))"
+    then have fmap_eq: "fmap Just as = fmap Just (G.push_forward (the f) (SOME as. Join (fmap Just as) = x))" by simp
+    then show "as = G.push_forward (the f) (SOME as. Join (fmap Just as) = x)"
       using fmap_preserves_inj [OF fmap_eq] by simp
   qed
 
@@ -1099,7 +906,7 @@ proof-
     apply (subst eq2)
     unfolding H_on_arrow_def
     apply (subst some_eq)
-    apply (subst reverse_equality [OF push_forward_comp])
+    apply (subst reverse_equality [OF G.push_forward_comp])
   proof-
     obtain xs where xs_def: "x = Join xs \<and>
    length xs = length (snd (the f)) \<and> (\<forall>k<length (snd (the f)). get xs k \<in> snd A)"
@@ -1116,8 +923,8 @@ proof-
     show "\<forall>k<length (SOME as. Join (fmap Just as) = x). get (SOME as. Join (fmap Just as) = x) k \<in> carrier G"
       using as_def by simp
     show "Join
-     (fmap Just (push_forward (the (Some (fin_set.Comp' (the g) (the f)))) (SOME as. Join (fmap Just as) = x))) =
-    Join (fmap Just (push_forward (fin_set.Comp' (the g) (the f)) (SOME as. Join (fmap Just as) = x)))"
+     (fmap Just (G.push_forward (the (Some (fin_set.Comp' (the g) (the f)))) (SOME as. Join (fmap Just as) = x))) =
+    Join (fmap Just (G.push_forward (fin_set.Comp' (the g) (the f)) (SOME as. Join (fmap Just as) = x)))"
       by simp
   qed
 qed

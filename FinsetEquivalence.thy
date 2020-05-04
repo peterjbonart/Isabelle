@@ -170,15 +170,13 @@ proof-
     apply (rule_tac fun_eq_char)
     unfolding Arr'_def setcat.Arr_def apply auto
     unfolding fin_set.Id'_def apply auto
-                  apply (simp add: get_rev_get)
                  apply (simp_all add: int_obj)
               apply (subst get_rev_get)
                apply (simp_all add: \<open>0<n\<close>)
              apply (simp_all add: rev_nn)
     unfolding Id'_def apply auto
        apply (simp_all add: int_obj)
-    using \<open>0<n\<close> apply simp
-    by (simp add: get_rev_get)
+    using \<open>0<n\<close> by simp
 qed
 
 lemma inclusion_dom : "partial_magma.arr pointed_fin_set.comp f \<Longrightarrow>
@@ -390,9 +388,7 @@ next
           unfolding inclusionFunctor_def MkArr_def 
           using arr_g arr_f arr_gf2 ex_n_gf ex_n_f seq2 apply simp
           using n_def apply simp
-          unfolding fin_set.Comp'_def apply simp
-          apply (subst get_rev_get)
-           apply simp
+          unfolding fin_set.Comp'_def
           by simp
       qed
     qed
@@ -555,7 +551,6 @@ I have no idea why this is necessary, but it is.*)
         apply (rule_tac pointed_fin_set_unsmash_arr)
         unfolding f_def apply simp_all
         unfolding fin_set.Arr'_def apply simp
-           apply (simp add: get_rev_get)
            apply auto[1]
       proof-
         have "length (rev_get (fst (the b)) (\<lambda>n. SOME m. fst (the g) (K n) = K m)) \<noteq> length []"
@@ -563,7 +558,7 @@ I have no idea why this is necessary, but it is.*)
         then show "rev_get (fst (the b)) (\<lambda>n. SOME m. fst (the g) (K n) = K m) \<noteq> []"
           by force
         show "get (rev_get (fst (the b)) (\<lambda>n. SOME m. fst (the g) (K n) = K m)) 0 = 0"
-          using \<open>0 < fst (the b)\<close> apply (simp add: get_rev_get)
+          using \<open>0 < fst (the b)\<close> apply simp
         proof
           show "fst (the g) (K 0) = K 0" using \<open>fst (the g) (K 0) = K 0\<close>.
           fix m
