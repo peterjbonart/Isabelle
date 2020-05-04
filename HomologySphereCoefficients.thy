@@ -219,15 +219,6 @@ lemma Homology_functor: "functor Gamma.comp pointed_set.pointed_set_comp (Homolo
   using \<Omega>_tothe_functor apply blast
   using pi0_functor.
 
-(*TODO: Show it\<acute>s a gammaset, not just a functor. i.e. preserves null object*)
-(*Although it\<acute>s not clear whether we even need that...*)
-lemma "gamma_set (Homology n)"
-  unfolding gamma_set_def
-  unfolding pointed_fin_set.comp_def
-  apply (simp add: Homology_functor)
-  unfolding gamma_set_axioms_def
-  oops
-
 
 
 end
