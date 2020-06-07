@@ -616,6 +616,54 @@ qed
 
 
 
+
+
+lemma simplicial_identity_d_d : 
+  assumes "i < j"
+  and "0 < n"
+  shows "comp (d n i) (d (Suc n) j) =
+         comp (d n (j - 1)) (d (Suc n) i)"
+  apply (subst comp_char)
+   apply (rule_tac D.seqI')
+  using d_in_hom apply blast
+   apply (rule_tac d_in_hom)
+  using \<open>0 < n\<close> apply simp
+  apply (subst comp_char)
+   apply (rule_tac D.seqI')
+  using d_in_hom apply blast
+   apply (rule_tac d_in_hom)
+  using \<open>0 < n\<close> apply simp
+  unfolding fin_set.Comp'_def
+  apply auto
+   apply (simp add: d_def)
+  apply (rule_tac getFaithful)
+   apply (simp add: d_def)
+  apply simp
+  apply (subst get_rev_get)
+   apply (simp add: d_def)
+proof-
+  define m where "m = Suc n"
+  fix k
+  assume "k < length (snd (the (d n i)))"
+  then have "k < n"
+    unfolding d_def by simp
+  then have "k < m"
+    unfolding m_def by simp
+  from \<open>k < n\<close> have "Suc k < m"
+    unfolding m_def by simp
+
+  show "get (snd (the (d (Suc n) j)))
+           (get (snd (the (d n i))) k) =
+          get (snd (the (d (Suc n) i)))
+           (get (snd (the (d n (j - Suc 0)))) k)"
+    unfolding reverse_equality [OF m_def]
+    unfolding d_def
+    apply (simp add: \<open>k < n\<close> \<open>k < m\<close> \<open>Suc k < m\<close>)
+    using \<open>i < j\<close> by auto
+qed
+
+
+
 end
 
 
@@ -635,6 +683,13 @@ interpretation simplex.
 
 definition simplices :: "nat \<Rightarrow> 'a pointed_set" where
   "simplices n = pointed_set.Dom' (the (X (Some (fin_set.Id' (Suc n)))))"
+
+lemma simplices_obj : "pointed_set.Obj' (simplices n)"
+  using X.preserves_ide [OF ide_Dn]
+  unfolding simplices_def
+  unfolding pointed_set.ide_char
+  unfolding pointed_set.Arr'_def
+  by simp
 
 definition pi0prerelation :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where
   "pi0prerelation x y = (x \<in> snd (simplices 0) \<and> y \<in> snd (simplices 0) \<and>

@@ -4277,6 +4277,14 @@ lemma forget_functor : "functor pointed_set_comp SetCat.comp forget_functor"
   using forget_functor1 apply simp
   using setcat_comparison_functor.
 
+lemma forget_functor_simp : "P.arr f \<Longrightarrow> forget_functor f = Abs_arr (forget (the f)) "
+  unfolding forget_functor_def apply simp
+  unfolding setcat_comparison_functor_def
+  unfolding AC.A_functor_def
+  apply (simp add: functor.preserves_arr [OF forget_functor1])
+  unfolding forget_functor1_def by simp
+
+
 
 
 

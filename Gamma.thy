@@ -107,21 +107,11 @@ lemma rev_get_get : "rev_get (length xs) (get xs) = xs"
    apply simp
   by simp
 
+
 lemma rev_get_independence : "(\<And> n. n < m \<Longrightarrow> f n = g n) \<Longrightarrow> rev_get m f = rev_get m g"
-  apply (induction m arbitrary: f g)
-   apply simp
-proof-
-  fix m 
-  fix f :: "nat \<Rightarrow> 'a"
-  fix g :: "nat \<Rightarrow> 'a" 
-  assume ind : "(\<And> (f :: nat \<Rightarrow> 'a) (g :: nat \<Rightarrow> 'a). 
-            (\<And>n. n < m \<Longrightarrow> f n = g n) \<Longrightarrow> rev_get m f = rev_get m g)"
-  assume H: "(\<And>n. n < Suc m \<Longrightarrow> f n = g n)"
-  show "rev_get (Suc m) f = rev_get (Suc m) g"
-    apply (simp add: H)
-    apply (rule_tac ind)
-    by (simp add: H)
-qed
+  apply (rule_tac getFaithful)
+  by simp_all
+
 
 
 locale fin_set
@@ -180,8 +170,7 @@ proof
          snd (Comp' f (Id' (length (snd f)))) = snd f"
       apply (subst subst)
       apply (simp add: Comp'_def Id'_def)
-      apply (rule_tac rev_get_independence)
-      apply (subst get_rev_get)
+      apply (rule_tac getFaithful)
       by simp_all
   qed
   show "\<And>f. \<forall>n<length (snd f). get (snd f) n < fst f \<Longrightarrow> Comp' (Id' (fst f)) f = f"
@@ -194,8 +183,7 @@ proof
     show "\<And>f. \<forall>n<length (snd f). get (snd f) n < fst f \<Longrightarrow> snd (Comp' (Id' (fst f)) f) = snd f"
       apply (subst subst)
       apply (simp add: Comp'_def Id'_def)
-      apply (rule_tac rev_get_independence)
-      apply (subst get_rev_get)
+      apply (rule_tac getFaithful)
       by simp_all
   qed
   show "\<And>f g h.
@@ -219,12 +207,8 @@ proof
        fst f = length (snd g) \<Longrightarrow>
        fst g = length (snd h) \<Longrightarrow> snd (Comp' (Comp' h g) f) = snd (Comp' h (Comp' g f))"
       unfolding Comp'_def apply simp
-      apply (rule_tac rev_get_independence)
-      apply (subst get_rev_get)
-       apply simp
-      apply (subst get_rev_get)
-       apply simp
-      by simp
+      apply (rule_tac getFaithful)
+      by simp_all
   qed
 qed
 

@@ -696,6 +696,38 @@ next
       by simp
   qed
 qed
+
+
+lemma colim_functor_obj_simp :
+  assumes "F.F.C.ide A"
+  shows "colim_functor A = colim A"
+proof-
+  interpret Col : colimit "F_ob A" S "\<tau> A" "cocone_map A" "colim A" "colim_UP_map A"
+    using colimit_existence [OF assms].
+  have EQ: "(vertical_composite.map (F_ob A) S (\<tau> A) (cocone_map A \<circ> F_arr A)) = cocone_map A"
+    apply (rule_tac ext)
+    apply (subst vertical_composite.map_def)
+    using vert_comp [OF F.F.C.ideD(1) [OF assms]]
+     apply (simp add: assms)
+    apply auto
+     apply (simp_all add: Col.\<tau>.is_extensional)
+    apply (subst F.F.Ffun_id [OF assms])
+    apply (subst Col.C.map_def)
+    by simp
+
+  have "F.S.dom (colim_functor A) = colim A"
+    unfolding colim_functor_def
+    apply (simp add: assms)
+    apply (rule_tac F.S.in_hom_dom [OF colim_UP_map_in_hom])
+      apply (simp add: assms)
+    unfolding EQ
+    using Col.cocone apply simp
+    using colim_ide [OF assms].
+  then show "colim_functor A = colim A"
+    unfolding F.S.ideD(2) [OF functor.preserves_ide [OF is_functor assms]].
+qed
+
+
       
 end
        
@@ -853,6 +885,13 @@ lemma is_functor_to_cat :
   using DF.functor_to_cat_axioms.
 
 
+lemma const_fun :"\<And>c. S.ide c \<Longrightarrow> constant_functor (discrete_category.comp (S.set c)) C obj"
+  unfolding constant_functor_def
+  apply (subst discrete_category.is_category)
+   apply (simp add: is_discrete_category)
+  unfolding constant_functor_axioms_def
+  by (simp add: C.category_axioms ide_obj)
+
 lemma const_functor_overX: "functor_to_cat_overX SetCat.comp C 
        (\<lambda>S. discrete_category.comp (S.set S))
        discrete_functor cocone"
@@ -862,12 +901,6 @@ lemma const_functor_overX: "functor_to_cat_overX SetCat.comp C
   unfolding functor_to_cat_overX_axioms_def
   apply auto
 proof-
-  have const_fun: "\<And>c. S.ide c \<Longrightarrow> constant_functor (discrete_category.comp (S.set c)) C obj"
-    unfolding constant_functor_def
-    apply (subst discrete_category.is_category)
-     apply (simp add: is_discrete_category)
-    unfolding constant_functor_axioms_def
-    by (simp add: C.category_axioms ide_obj)
   show "\<And>ca. S.ide ca \<Longrightarrow>
           functor (discrete_category.comp (S.set ca)) C
            (constant_functor.map (discrete_category.comp (S.set ca)) C obj)"

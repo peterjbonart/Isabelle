@@ -674,6 +674,8 @@ qed
 end
 
 
+
+
 locale classical_full_subcategory =
   CC : classical_category Obj Arr Dom Cod Ide Comp
     for Obj :: "'a \<Rightarrow> bool"

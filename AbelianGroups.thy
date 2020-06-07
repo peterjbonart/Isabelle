@@ -8,9 +8,39 @@ theory AbelianGroups
          "Category3.Yoneda"
          "Category3.SetCategory"
          pointedSet_Factorization
-         ColimitFunctoriality
          H_Ab
+         simplicialSet
 begin
+
+
+
+lemma finite_induct' : 
+  assumes "finite x"
+  shows "P {} \<Longrightarrow> 
+        (\<And>A a. finite A \<Longrightarrow> P A \<Longrightarrow> a \<notin> A \<Longrightarrow> P (insert a A)) 
+         \<Longrightarrow> P x"
+  apply (rule_tac finite.induct [OF assms])
+   apply simp
+proof-
+  fix A a
+  assume "P A"
+  assume "finite A"
+  assume step: "(\<And>A a. finite A \<Longrightarrow> P A \<Longrightarrow> a \<notin> A \<Longrightarrow> P (insert a A))"
+  have "a \<in> A \<or> a \<notin> A" by auto
+  then show "P (insert a A)"
+  proof
+    assume "a \<in> A"
+    then have "insert a A = A" by auto
+    then show "P (insert a A)"
+      by (simp add: \<open>P A\<close>)
+  next
+    show "a \<notin> A \<Longrightarrow> P (insert a A)"
+      apply (rule_tac step)
+      using \<open>finite A\<close> \<open>P A\<close> by simp_all
+  qed
+qed
+
+
 
 
 
@@ -158,6 +188,179 @@ lemma is_category : "category comp"
 
 lemma is_classical_category : "classical_category Obj' Arr' Dom' Cod' Id' Comp'"
   using AbCC.classical_category_axioms.
+
+
+lemma fun_eqI:
+  assumes "AbCC.arr f" "AbCC.arr g"
+  and dom_eq:  "AbCC.dom f = AbCC.dom g"
+  and cod_eq: "AbCC.cod f = AbCC.cod g"
+  and fst_eq : "\<And>x. x \<in> carrier (Dom' (the f)) \<Longrightarrow>
+                    x \<in> carrier (Dom' (the g)) \<Longrightarrow>
+                    fst (the f) x = fst (the g) x"
+shows "f = g"
+proof-
+  have dom_eq' : "Dom' (the f) = Dom' (the g)"
+    using dom_eq
+    unfolding AbCC.dom_char
+    apply (simp add: assms)
+    unfolding Id'_def by simp
+
+  have "the f = the g"
+  proof
+    show "fst (the f) = fst (the g)"
+      apply (rule_tac ext)
+    proof-
+      fix x
+      have "x \<in> carrier (Dom' (the f)) \<or> x \<notin> carrier (Dom' (the f))" by auto
+      then show "fst (the f) x = fst (the g) x"
+      proof
+        show "x \<in> carrier (Dom' (the f)) \<Longrightarrow> fst (the f) x = fst (the g) x"
+          apply (rule_tac fst_eq)
+          unfolding dom_eq'.
+        show "x \<notin> carrier (Dom' (the f)) \<Longrightarrow> fst (the f) x = fst (the g) x"
+          using \<open>AbCC.arr f\<close> \<open>AbCC.arr g\<close>
+          unfolding AbCC.arr_char Arr'_def extensional_def
+          unfolding dom_eq'
+          by simp
+      qed
+    qed
+    show "snd (the f) = snd (the g)"
+    proof
+      show "fst (snd (the f)) = fst (snd (the g))"
+        using dom_eq'
+        unfolding Dom'_def.
+      show "snd (snd (the f)) = snd (snd (the g))"
+        using cod_eq
+        unfolding AbCC.cod_char
+        apply (simp add: assms)
+        unfolding Id'_def Cod'_def
+        by simp
+    qed
+  qed
+  then show "f = g"
+    using \<open>AbCC.arr f\<close> \<open>AbCC.arr g\<close>
+    unfolding AbCC.arr_char
+    by auto
+qed
+
+
+
+
+
+
+lemma comp_eqI :
+  assumes "AbCC.arr f" "AbCC.arr g" "AbCC.arr h"
+  and "AbCC.dom f = AbCC.dom h"
+  and "AbCC.cod f = AbCC.cod g"
+  and "AbCC.cod h = AbCC.dom g"
+  and fst_eq: "\<And>x. x \<in> carrier (Dom' (the f)) \<Longrightarrow>
+           x \<in> carrier (Dom' (the h)) \<Longrightarrow>
+           fst (the h) x \<in> carrier (Dom' (the g)) \<Longrightarrow>
+         fst (the f) x = fst (the g) (fst (the h) x)"
+shows "f = comp g h"
+  unfolding comp_def
+  apply (subst AbCC.comp_simp)
+proof-
+  have "AbCC.seq g h"
+    apply (rule_tac AbCC.seqI)
+    using assms by simp_all
+  then show "AbCC.comp g h \<noteq> AbCC.null"
+    by auto
+  then have "f = Some (the f)"
+    using \<open>AbCC.arr f\<close>
+    unfolding AbCC.arr_char by simp
+
+  show "f = Some (Comp' (the g) (the h))"
+    unfolding Comp'_def
+    apply (subst \<open>f = Some (the f)\<close>)
+    apply simp
+  proof
+
+    have dom_eq : "Dom' (the f) = Dom' (the h)"
+      using \<open>AbCC.dom f = AbCC.dom h\<close>
+      unfolding AbCC.dom_char
+      using \<open>AbCC.arr f\<close> \<open>AbCC.arr h\<close>
+      apply simp
+      unfolding Id'_def Dom'_def
+      by simp
+
+    show "snd (the f) =
+    snd (\<lambda>x\<in>carrier (Dom' (the h)). fst (the g) (fst (the h) x), Dom' (the h),
+         Cod' (the g))"
+      apply simp
+    proof
+      show "fst (snd (the f)) = fst (Dom' (the h), Cod' (the g))"
+        using dom_eq
+        unfolding Dom'_def by simp
+      show "snd (snd (the f)) = snd (Dom' (the h), Cod' (the g))"
+        using \<open>AbCC.cod f = AbCC.cod g\<close>
+        unfolding AbCC.cod_char
+        using \<open>AbCC.arr f\<close> \<open>AbCC.arr g\<close>
+        apply simp
+        unfolding Id'_def Cod'_def
+        by simp
+    qed
+    show "fst (the f) =
+    fst (\<lambda>x\<in>carrier (Dom' (the h)). fst (the g) (fst (the h) x), Dom' (the h),
+         Cod' (the g))"
+      apply (rule_tac ext)
+      apply auto
+    proof-
+      show "\<And>x. x \<notin> carrier (Dom' (the h)) \<Longrightarrow> fst (the f) x = undefined"
+        unfolding reverse_equality [OF dom_eq]
+        using \<open>AbCC.arr f\<close>
+        unfolding AbCC.arr_char Arr'_def extensional_def
+        by auto
+
+      have seq_eq : "Dom' (the g) = Cod' (the h)"
+        using \<open>AbCC.cod h = AbCC.dom g\<close>
+        unfolding AbCC.cod_char AbCC.dom_char
+        using \<open>AbCC.arr h\<close> \<open>AbCC.arr g\<close>
+        apply simp
+        unfolding Id'_def by simp
+
+      fix x
+      assume x_in: "x \<in> carrier (Dom' (the h))"
+      then have hx_in: "(fst (the h) x) \<in> carrier (Dom' (the g))"
+        unfolding seq_eq
+        using \<open>AbCC.arr h\<close>
+        unfolding AbCC.arr_char Arr'_def hom_def
+        by auto
+      show "fst (the f) x = fst (the g) (fst (the h) x)"
+        apply (rule_tac fst_eq)
+        unfolding dom_eq
+        using x_in hx_in by auto
+    qed
+  qed
+qed
+
+
+lemma in_hom_mapsto:
+  assumes "AbCC.in_hom f A B"
+  and AC: "carrier (Dom' (the A)) = C"
+  and BD: "carrier (Dom' (the B)) = D"
+shows "fst (the f) \<in> C \<rightarrow> D"
+proof-
+  have In_Hom: "AbCC.In_Hom (the f) (Dom' (the A)) (Dom' (the B))"
+  using \<open>AbCC.in_hom f A B\<close>
+  unfolding AbCC.in_hom_char
+  unfolding AbCC.In_Hom_def
+  by simp
+  then have dom_eq : "Dom' (the f) = Dom' (the A)"
+    unfolding AbCC.In_Hom_def by simp
+  from In_Hom have cod_eq : "Cod' (the f) = Dom' (the B)"
+    unfolding AbCC.In_Hom_def by simp
+  from In_Hom have "Arr' (the f)"
+    unfolding AbCC.In_Hom_def by simp
+  then show "fst (the f) \<in> C \<rightarrow> D"
+    unfolding Arr'_def
+    unfolding hom_def
+    unfolding dom_eq cod_eq
+    unfolding AC BD
+    by simp
+qed
+
+
 
 
 context begin
@@ -701,847 +904,6 @@ interpretation AF : "functor" "(dual_category.comp (Ab.Lawv_comp))" pointed_set.
 end
 
 
-(* Typeclass test
-class semigroup = 
-  fixes mult :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
-  assumes assoc : "mult x (mult y z) = mult (mult x y) z"
-
-instantiation int :: semigroup
-begin
-
-definition
-  mult_int_def2: "mult i j = i + (j :: int)"
-
-instance
-proof
-  fix x y z :: int
-  show "semigroup_class.mult x (semigroup_class.mult y z) = semigroup_class.mult (semigroup_class.mult x y) z"
-    unfolding mult_int_def2 by simp
-qed
-
-end
-
-(*Maybe the lesson here is that typeclasses in Isabelle are garbage?*)
-
-*)
-
-
-context pointed_set
-begin
-
-
-
-lemma finite_set_length_insert : 
-  assumes "a \<notin> A" "A \<noteq> {}" "finite A"
-  shows  "(finite_set_length (a, insert a A)) =
-     Suc (finite_set_length (SOME x. x \<in> A, A))"
-  apply (subst finite_set_length_def)
-proof-
-  define n where "n = finite_set_length (SOME x. x \<in> A, A)"
-  define f where "f = finite_set_interval_bijection (SOME x. x \<in> A, A)"
-  have A_snd: "A = snd (SOME x. x \<in> A, A)" by simp
-  have f_bij: "bij_betw f {i. i < n} A"
-    apply (subst A_snd)
-    unfolding f_def n_def
-    apply (rule_tac conjunct1 [OF finite_set_interval_bijection_char])
-    unfolding Obj'_def
-    using \<open>A \<noteq> {}\<close> some_in_eq apply auto[1]
-    using \<open>finite A\<close> by simp
-  have a_notin_f : "a \<notin> f ` {i. i < n}"
-    using f_bij
-    unfolding bij_betw_def
-    using \<open>a \<notin> A\<close> by simp
-  define g where "g = (\<lambda>k. if k = 0 then a else f (k -1))"
-  have g_prop: "bij_betw g {i. i < Suc n} (snd (a, insert a A)) \<and>
-            g 0 = fst (a, insert a A)"
-    unfolding bij_betw_def
-    apply auto
-  proof-
-    show "inj_on g {i. i < Suc n}"
-      unfolding inj_on_def
-      apply auto
-    proof-
-      fix x y
-      assume "x < Suc n"
-      assume "y < Suc n"
-      assume "g x = g y"
-      have "x = 0 \<or> x \<noteq> 0" by auto
-      then show "x = y"
-      proof
-        assume "x = 0"
-        then have "a = g y"
-          using \<open>g x = g y\<close>
-          unfolding g_def
-          by simp
-        then have "y \<noteq> 0 \<Longrightarrow> False"
-        proof-
-          assume "y \<noteq> 0"
-          then have "a \<in> f ` {i . i < n}"
-            unfolding \<open>a = g y\<close>
-            unfolding g_def
-            apply simp
-            using \<open>y < Suc n\<close> by auto
-          then show "False"
-            using a_notin_f
-            by simp
-        qed
-        then show "x = y"
-          unfolding \<open>x = 0\<close> by auto
-      next
-        assume "x \<noteq> 0"
-        then have "x - 1 < n"
-          using \<open>x < Suc n\<close> by simp
-        from \<open>x \<noteq> 0\<close> have "g y = f (x - 1)"
-          using \<open>g x = g y\<close>
-          unfolding g_def
-          by simp
-        have "g y \<in> f ` {i . i < n}"
-          unfolding \<open>g y = f (x - 1)\<close>
-          using \<open>x - 1 < n\<close> by simp
-        then have "a \<noteq> g y"
-          using a_notin_f 
-          by auto
-        then have "y \<noteq> 0"
-          unfolding g_def
-          by presburger
-        have "x - 1 = y - 1"
-          using \<open>g x = g y\<close>
-          unfolding g_def
-          using \<open>x \<noteq> 0\<close> \<open>y \<noteq> 0\<close> apply simp
-          using f_bij
-          unfolding bij_betw_def inj_on_def
-          using \<open>x - 1 < n\<close> \<open>y < Suc n\<close> by auto
-        then show "x = y"
-          using \<open>x \<noteq> 0\<close> \<open>y \<noteq> 0\<close> by simp
-      qed
-    qed
-    show "\<And>xa. g xa \<notin> A \<Longrightarrow> xa < Suc n \<Longrightarrow> g xa = a"
-      unfolding g_def
-      apply auto
-      using f_bij
-      unfolding bij_betw_def
-      by auto
-    show "g 0 = a"
-      unfolding g_def by simp
-    show "a \<in> g ` {i. i < Suc n}"
-      unfolding reverse_equality [OF \<open>g 0 = a\<close>] by simp
-    show "\<And>x. x \<in> A \<Longrightarrow> x \<in> g ` {i. i < Suc n}"
-    proof-
-      fix x
-      assume "x \<in> A"
-      then have "x \<in> f ` {i. i < n}"
-        using f_bij
-        unfolding bij_betw_def by simp
-      then obtain y where y_def : "x = f y \<and> y < n" by blast
-      have "x = g (Suc y) \<and> Suc y < Suc n"
-        unfolding conjunct1 [OF y_def]
-        unfolding g_def by (simp add: y_def)
-      then show "x \<in> g ` {i. i < Suc n}"
-        by simp
-    qed
-  qed
-  show "(SOME n.
-        \<exists>f. bij_betw f {i. i < n} (snd (a, insert a A)) \<and>
-            f 0 = fst (a, insert a A)) =
-    Suc (finite_set_length (SOME x. x \<in> A, A))"
-      unfolding reverse_equality [OF n_def]
-  proof
-    show "\<exists>f. bij_betw f {i. i < Suc n}
-         (snd (a, insert a A)) \<and>
-        f 0 = fst (a, insert a A)"
-      apply (rule_tac exI)
-      using g_prop.
-    fix m :: nat
-    assume "\<exists>f. bij_betw f {i. i < m} (snd (a, insert a A)) \<and>
-              f 0 = fst (a, insert a A)"
-    then obtain h where h_def: "bij_betw h {i. i < m} (snd (a, insert a A)) \<and>
-              h 0 = fst (a, insert a A)" by blast
-    then obtain i where i_def : "bij_betw i (snd (a, insert a A)) {i. i < m}"
-      using bij_betw_inv by blast
-    have "bij_betw (i \<circ> g) {i. i < Suc n} {i . i < m}"
-      apply (rule_tac bij_betw_trans)
-      using g_prop apply blast
-      using i_def.
-    then have "card {i. i < Suc n} = card {i . i < m}"
-      using bij_betw_same_card by blast
-    then show "m = Suc n"
-      by simp
-  qed
-qed
-
-end
-
-
-
-context comm_group
-begin
-
-
-definition finset_sum where
-  "finset_sum S f = sum (fmap f (pointed_set.finite_set_to_list ((SOME x. x \<in> S), S)))"
-
-
-lemma permutation_pushforward:
-  "bij_betw f {i::nat . i < length xs} {i :: nat . i < length xs} \<Longrightarrow>
-   \<forall>k < length xs. get xs k \<in> carrier G \<Longrightarrow>
-   push_forward (length xs, (rev_get (length xs) (\<lambda>k. (SOME m. k = f m \<and> m < length xs)))) xs = rev_get (length xs) 
-         (\<lambda>k. get xs (f k))"
-  unfolding push_forward_def
-  apply (rule_tac getFaithful)
-   apply simp
-  apply simp
-proof-
-  fix n
-  assume f_bij : "bij_betw f {i. i < length xs} {i. i < length xs}"
-  assume xs_in_G : "\<forall>k < length xs. get xs k \<in> carrier G"
-  assume "n < length xs"
-  then have "f n < length xs"
-    using f_bij
-    unfolding bij_betw_def by auto
-
-  have f_some_inv:  "\<And>k. k < length xs \<Longrightarrow>
-         k = f (SOME m. k = f m \<and> m < length xs)"
-  proof-
-    fix k
-    assume "k < length xs"
-    then have "k \<in> f ` {i . i < length xs}"
-      using f_bij
-      unfolding bij_betw_def
-      by auto
-    then obtain m where m_def : "k = f m \<and> m < length xs" 
-      by blast
-    have "(SOME m. k = f m \<and> m < length xs) = m"
-    proof
-      show "k = f m \<and> m < length xs" 
-        using m_def.
-      show "\<And>ma. k = f ma \<and> ma < length xs \<Longrightarrow> ma = m"
-        using f_bij
-        unfolding bij_betw_def inj_on_def
-        using m_def by auto
-    qed
-    then show "k = f (SOME m. k = f m \<and> m < length xs)"
-      unfolding conjunct1 [OF m_def] by simp
-  qed
-  show "local.sum (merge_with_zeros xs
-            (\<lambda>i. get (rev_get (length xs) (\<lambda>k. SOME m. k = f m \<and> m < length xs))
-             i = n)) = get xs (f n)"
-    apply (subst one_sum)
-     apply auto
-    using \<open>f n < length xs\<close> apply simp
-    unfolding merge_with_zeros_def
-      apply auto
-    using f_some_inv apply simp
-    using \<open>f n < length xs\<close> apply simp
-    using xs_in_G apply simp
-    using \<open>f n < length xs\<close> apply auto
-  proof-
-    assume not_eq: "(SOME m. f n = f m \<and> m < length xs) \<noteq> n"
-    have eq: "(SOME m. f n = f m \<and> m < length xs) = n"
-    proof
-      show "f n = f n \<and> n < length xs"
-        using \<open>n < length xs\<close> by simp
-      show "\<And>m. f n = f m \<and> m < length xs \<Longrightarrow> m = n"
-        using \<open>n < length xs\<close>
-        using f_bij
-        unfolding bij_betw_def inj_on_def
-        by auto
-    qed
-    show "\<one> = get xs (f n)"
-      using eq not_eq by simp
-  qed
-qed
-
-lemma sum_permutation_invariant :
-   "bij_betw f {i::nat . i < (length xs)} {i :: nat . i < (length xs)} \<Longrightarrow>
-    \<forall>k<length xs. get xs k \<in> carrier G \<Longrightarrow>
-        sum xs = sum (rev_get (length xs) (\<lambda>k. get xs (f k)))"
-  unfolding reverse_equality [OF permutation_pushforward]
-  apply (subst push_forward_sum)
-     apply auto
-  unfolding fin_set.Arr'_def
-  apply auto
-proof-
-  fix n
-  assume f_bij: "bij_betw f {i. i < length xs} {i. i < length xs}"
-  assume "n < length xs"
-  then have "n \<in> f ` {i . i < length xs}"
-    using f_bij
-    unfolding bij_betw_def by auto
-  then obtain m where m_def: "n = f m \<and> m < length xs" by blast
-  have "(SOME m. n = f m \<and> m < length xs) = m"
-  proof
-    show "n = f m \<and> m < length xs"
-      using m_def.
-    show "\<And>ma. n = f ma \<and> ma < length xs \<Longrightarrow> ma = m"
-      using f_bij
-      unfolding bij_betw_def inj_on_def
-      using m_def by auto
-  qed
-  then show "(SOME m. n = f m \<and> m < length xs) < length xs"
-    by (simp add: m_def)
-qed
-
-lemma finset_sum_empty :
-  "finset_sum {} f = \<one>"
-proof-
-  have n_some: "(SOME (n :: nat). \<exists>f. bij_betw f {i. i < n} {} \<and> f 0 = (SOME x. False)) = 0"
-  proof
-    show "\<exists> f. bij_betw f {i. i < (0 :: nat)} {} \<and> f 0 = (SOME x. False)"
-      apply (rule_tac exI)
-    proof-
-      show "bij_betw (\<lambda>k. (SOME x. False)) {i. i < (0 :: nat)} {} \<and> 
-            (\<lambda>k. (SOME x. False)) 0 = (SOME x. False)"
-        unfolding bij_betw_def by auto
-    qed
-    fix n :: nat
-    show "\<exists>f. bij_betw f {i. i < n} {} \<and> f 0 = (SOME x. False) \<Longrightarrow> n = 0"
-      unfolding bij_betw_def
-      by auto
-  qed
-  show "finset_sum {} f = \<one>"
-    unfolding finset_sum_def
-    unfolding pointed_set.finite_set_to_list.simps
-    unfolding pointed_set.finite_set_length_def
-    apply simp
-    unfolding n_some
-    by simp
-qed
-
-lemma finset_sum_insert :
-  assumes "a \<notin> A" "A \<noteq> {}" "finite A"
-  and "f a \<in> carrier G"
-  and "finset_sum A f \<in> carrier G"
-shows "finset_sum (insert a A) f = (f a) \<otimes> (finset_sum A f)"
-proof-
-  define n where n_def : "n = (pointed_set.finite_set_length (SOME x. x \<in> A, A))"
-  have length_eq: "(pointed_set.finite_set_length (a, insert a A)) =
-        Suc n"
-    unfolding n_def
-    apply (rule_tac pointed_set.finite_set_length_insert)
-    using assms by simp_all
-
-  have obj_aA: "pointed_set.Obj' (a, insert a A)"
-    unfolding pointed_set.Obj'_def by simp
-  define g where "g = pointed_set.finite_set_interval_bijection (a, insert a A)"
-  have g_bij : "bij_betw g {i. i < Suc n} (insert a A) \<and> g 0 = a"
-    unfolding g_def reverse_equality [OF length_eq]
-    using pointed_set.finite_set_interval_bijection_char [OF obj_aA]
-    using \<open>finite A\<close> by simp
-  define h where "h = (\<lambda>k. g (Suc k))"
-  have h_bij : "bij_betw h {i. i < n} A"
-    using g_bij
-    unfolding h_def bij_betw_def inj_on_def
-    apply auto
-  proof-
-    fix x
-    assume "x \<in> A"
-    then have "x \<in> insert (g 0) A" by simp
-    assume "g ` {i. i < Suc n} = insert (g 0) A"
-    from this and \<open>x \<in> insert (g 0) A\<close> 
-    have "x \<in> g ` {i. i < Suc n}" by simp
-    then obtain i where i_def : "i < Suc n \<and> g i = x"
-      by blast
-    have "i \<noteq> 0"
-    proof
-      assume "i = 0"
-      have "x = a"
-        using i_def
-        unfolding \<open>i = 0\<close>
-        using g_bij by simp
-      then show "False"
-        using \<open>x \<in> A\<close> \<open>a \<notin> A\<close> by simp
-    qed
-    then have "g (Suc (i -1)) = x \<and> i - 1 < n"
-      using i_def by auto
-    then show "x \<in> (\<lambda>k. g (Suc k)) ` {i. i < n}"
-      by auto
-  qed
-  have obj_A: "pointed_set.Obj' (SOME x. x \<in> A, A)"
-    unfolding pointed_set.Obj'_def
-    using \<open>A \<noteq> {}\<close>
-    by (simp add: some_in_eq)
-  define \<alpha> where "\<alpha> = pointed_set.finite_set_interval_bijection (SOME x. x \<in> A, A)"
-  have bij_\<alpha> : "bij_betw \<alpha> {i . i < n} A"
-    unfolding \<alpha>_def n_def
-    using pointed_set.finite_set_interval_bijection_char [OF obj_A]
-    using \<open>finite A\<close> by simp
-  (*TODO: Compose an inverse of \<alpha> with h, and prove that it is the desired permutation below.*)
-      
-  have "local.sum
-     (fmap f (pointed_set.finite_set_to_list (a, insert a A))) =
-    f a \<otimes> finset_sum A f"
-    unfolding finset_sum_def
-    unfolding pointed_set.finite_set_to_list.simps
-    unfolding length_eq
-    apply simp
-    apply (subst conjunct2 [OF pointed_set.finite_set_interval_bijection_char])
-    unfolding pointed_set.Obj'_def apply simp
-    using \<open>finite A\<close> apply simp
-    apply simp
-    unfolding reverse_equality [OF n_def]
-    apply (subst sum_permutation_invariant)
-      apply simp_all
-    
-    
-
-
-
-
-
-
-
-
-lemma finset_sum_carrier :
-  assumes "finite S"
-shows "(\<forall>x \<in> S. f x \<in> carrier G) \<longrightarrow> finset_sum S f \<in> carrier G"
-  apply (rule_tac finite.induct [OF \<open>finite S\<close>])
-  apply auto
-proof-
-  show "finset_sum {} f \<in> carrier G"
-    unfolding finset_sum_empty
-    by simp
-
-  fix A a
-  assume "finset_sum A f \<in> carrier G"
-  assume "finite A"
-  show "finset_sum (insert a A) f \<in> carrier G"
-    
-      
-
-
-
-end
-
-
-locale coproduct_of_A_functor =
-  A : comm_group A
-  for A :: "('a , 'b) monoid_scheme"
-begin
-
-
-
-
-
-
-definition coproduct_carrier :: "'s set \<Rightarrow> ('s \<Rightarrow> 'a) set" where
-  "coproduct_carrier S = {c. c \<in> extensional S \<and> c \<in> S \<rightarrow> carrier A \<and> finite {x \<in> S. c x \<noteq> one A}}"
-
-definition coproduct_of_A :: "'s set \<Rightarrow> ('s \<Rightarrow> 'a, 'b) monoid_scheme" where
-  "coproduct_of_A S = \<lparr>carrier = coproduct_carrier S, 
-                       mult = (\<lambda>a b. (\<lambda>s \<in> S. mult A (a s) (b s))),
-                       one = (\<lambda>s \<in> S. one A),
-                       \<dots> = monoid.more A\<rparr>"
-
-
-
-
-lemma coproduct_comm_group : "comm_group (coproduct_of_A S)"
-  apply (rule_tac comm_groupI)
-  unfolding coproduct_of_A_def
-       apply simp_all
-proof-
-  show "\<And>x y. x \<in> coproduct_carrier S \<Longrightarrow>
-           y \<in> coproduct_carrier S \<Longrightarrow>
-           (\<lambda>s\<in>S. x s \<otimes>\<^bsub>A\<^esub> y s) \<in> coproduct_carrier S"
-    unfolding coproduct_carrier_def
-    apply auto
-  proof-
-    fix x y
-    assume x_fin: "finite {a \<in> S. x a \<noteq> \<one>\<^bsub>A\<^esub>}"
-    assume y_fin: "finite {a \<in> S. y a \<noteq> \<one>\<^bsub>A\<^esub>}"
-    have xy_fin: "finite ({a \<in> S. x a \<noteq> \<one>\<^bsub>A\<^esub>} \<union> {a \<in> S. y a \<noteq> \<one>\<^bsub>A\<^esub>})"
-      using x_fin y_fin by auto
-    show "finite {a.(a \<in> S \<longrightarrow> 
-          x a \<otimes>\<^bsub>A\<^esub> y a \<noteq> \<one>\<^bsub>A\<^esub>) \<and> a \<in> S}"
-      apply (rule_tac rev_finite_subset)
-      using xy_fin apply blast
-      by auto
-  qed
-  show "(\<lambda>s\<in>S. \<one>\<^bsub>A\<^esub>) \<in> coproduct_carrier S"
-    unfolding coproduct_carrier_def
-    by auto
-  show "\<And>x y z.
-       x \<in> coproduct_carrier S \<Longrightarrow>
-       y \<in> coproduct_carrier S \<Longrightarrow>
-       z \<in> coproduct_carrier S \<Longrightarrow>
-       (\<lambda>s\<in>S. (if s \<in> S then x s \<otimes>\<^bsub>A\<^esub> y s
-                else undefined) \<otimes>\<^bsub>A\<^esub> z s) =
-       (\<lambda>s\<in>S. x s \<otimes>\<^bsub>A\<^esub> (if s \<in> S then y s \<otimes>\<^bsub>A\<^esub> z s
-                else undefined))"
-    apply (rule_tac ext)
-    apply auto
-    apply (rule_tac A.m_assoc)
-    unfolding coproduct_carrier_def
-    by auto
-  show "\<And>x y. x \<in> coproduct_carrier S \<Longrightarrow>
-           y \<in> coproduct_carrier S \<Longrightarrow>
-           (\<lambda>s\<in>S. x s \<otimes>\<^bsub>A\<^esub> y s) = (\<lambda>s\<in>S. y s \<otimes>\<^bsub>A\<^esub> x s)"
-    apply (rule_tac ext)
-    apply auto
-    apply (rule_tac A.m_comm)
-    unfolding coproduct_carrier_def
-    by auto
-  show "\<And>x. x \<in> coproduct_carrier S \<Longrightarrow>
-         (\<lambda>s\<in>S. (if s \<in> S then \<one>\<^bsub>A\<^esub>
-                  else undefined) \<otimes>\<^bsub>A\<^esub>
-                 x s) = x"
-    apply (rule_tac ext)
-    unfolding coproduct_carrier_def
-    apply auto
-     apply (rule_tac A.l_one)
-    unfolding extensional_def by auto
-  fix x
-  assume x_in: "x \<in> coproduct_carrier S"
-  define y where "y = (\<lambda>s \<in> S. inv\<^bsub>A\<^esub> (x s))"
-
-  show "\<exists>y\<in>coproduct_carrier S.
-            (\<lambda>s\<in>S. y s \<otimes>\<^bsub>A\<^esub> x s) = (\<lambda>s\<in>S. \<one>\<^bsub>A\<^esub>)"
-  proof
-    show "y \<in> coproduct_carrier S"
-      using x_in
-      unfolding coproduct_carrier_def y_def
-      apply auto
-    proof-
-      assume fin: "finite {xa \<in> S. x xa \<noteq> \<one>\<^bsub>A\<^esub>}"
-      show "finite
-     {xa. (xa \<in> S \<longrightarrow> inv\<^bsub>A\<^esub> x xa \<noteq> \<one>\<^bsub>A\<^esub>) \<and> xa \<in> S}"
-        apply (rule_tac rev_finite_subset)
-        using fin apply blast
-        by auto
-    qed
-    show "(\<lambda>s\<in>S. y s \<otimes>\<^bsub>A\<^esub> x s) = (\<lambda>s\<in>S. \<one>\<^bsub>A\<^esub>)"
-      apply (rule_tac ext)
-      unfolding y_def
-      apply auto
-      apply (rule_tac A.l_inv)
-      using x_in 
-      unfolding coproduct_carrier_def
-      by auto
-  qed
-qed
-
-
-
-
-      
-
-
-interpretation Ab : abelian_group_category.
-interpretation AbCC : classical_category Ab.Obj' Ab.Arr' Ab.Dom' Ab.Cod' Ab.Id' Ab.Comp'
-  using Ab.is_classical_category.
-interpretation S: set_category SetCat.comp
-  using SetCat.is_set_category.
-
-
-definition obj where
-  "obj = Some (Ab.Id' (coproduct_of_A {(SOME y. True)}))"
-
-definition A_to_obj where
-  "A_to_obj a = (\<lambda>s \<in> {(SOME y. True)}. a)"
-
-
-lemma A_to_obj_in_hom: "A_to_obj \<in> hom A (coproduct_of_A {(SOME y. True)})"
-  unfolding A_to_obj_def hom_def coproduct_of_A_def
-  unfolding coproduct_carrier_def
-  by auto
-
-
-
-definition coproduct_inclusion :: "'s set \<Rightarrow> 's \<Rightarrow> ('s \<Rightarrow> 'a, 'b) Ab_hom" where
-  "coproduct_inclusion S s = Some ((\<lambda>x \<in> coproduct_carrier {(SOME y. True)}.
-             (\<lambda>t \<in> S. (if t = s then x (SOME y. True) else \<one>\<^bsub>A\<^esub>))),
-             (coproduct_of_A {(SOME y. True)},
-             (coproduct_of_A S)))"
-
-
-
-
-lemma coproduct_inclusion_in_hom : 
-    "AbCC.in_hom (coproduct_inclusion S s) obj 
-     (Some (Ab.Id' (coproduct_of_A S)))"
-  apply (rule_tac AbCC.in_homI)
-proof-
-  show arr: "AbCC.arr (coproduct_inclusion S s)"
-    unfolding AbCC.arr_char coproduct_inclusion_def
-    apply simp
-    unfolding Ab.Arr'_def
-    apply (simp add: Ab.Dom'_def Ab.Cod'_def Ab.Obj'_def coproduct_comm_group)
-    unfolding coproduct_of_A_def
-    apply simp
-    unfolding hom_def apply auto
-    unfolding coproduct_carrier_def
-    by auto
-  show "AbCC.dom (coproduct_inclusion S s) = obj"
-    unfolding AbCC.dom_char
-    apply (simp add: arr)
-    unfolding obj_def coproduct_inclusion_def
-    by (simp add: Ab.Dom'_def)
-  show "AbCC.cod (coproduct_inclusion S s) = Some (Ab.Id' (coproduct_of_A S))"
-    unfolding AbCC.cod_char
-    apply (simp add: arr)
-    unfolding coproduct_inclusion_def
-    by (simp add: Ab.Cod'_def)
-qed
-
-
-definition coproduct_UP_map where
-  "coproduct_UP_map c X \<sigma> = Some ((\<lambda>x \<in> coproduct_carrier (S.set c). 
-      comm_group.finset_sum (Ab.Dom' (the X)) 
-      {s \<in> (S.set c). x s \<noteq> one A}
-      (\<lambda>s \<in> (S.set c). fst (the (\<sigma> (discrete_category.mkIde (S.set c) s))) 
-        (A_to_obj (x s)))), 
-       (coproduct_of_A (S.set c),  Ab.Dom' (the X)))"
-
-
-
-interpretation Cocone: coproduct_cocone Ab.comp obj
-  unfolding coproduct_cocone_def
-  apply (simp add: Ab.is_category)
-  unfolding coproduct_cocone_axioms_def
-  unfolding Ab.comp_def
-  unfolding obj_def
-  apply (rule_tac classical_category.ide_Some_Id [OF Ab.is_classical_category])
-  unfolding Ab.Obj'_def
-  using coproduct_comm_group by blast
-
-interpretation \<tau> : functor_to_cat_overX SetCat.comp Ab.comp 
-   "(\<lambda>S. discrete_category.comp (S.set S))"
-   Cocone.discrete_functor Cocone.cocone
-  using Cocone.const_functor_overX.
-
-term "coproduct_of_A (S.set (c :: ((((nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a) \<times>
-    (nat \<Rightarrow> 'a, 'b) monoid_scheme \<times>
-    (nat \<Rightarrow> 'a, 'b) monoid_scheme) option SetCat.arr)))"
-
-
-
-definition coproduct_inc_nattrafo where
-  "coproduct_inc_nattrafo c = MkFunctor (discrete_category.comp (S.set c)) Ab.comp
-                 (\<lambda>d. coproduct_inclusion (S.set c) (discrete_category.toObj d))"
-
-
-lemma "colimit_functoriality 
-       SetCat.comp 
-       Ab.comp
-       (\<lambda>S. discrete_category.comp (S.set S))
-       Cocone.discrete_functor 
-       Cocone.cocone
-       (\<lambda>c. Some (Ab.Id' (coproduct_of_A (S.set c))))
-       coproduct_inc_nattrafo
-       coproduct_UP_map"
-  unfolding colimit_functoriality_def
-  apply (simp add: \<tau>.functor_to_cat_overX_axioms)
-  unfolding colimit_functoriality_axioms_def
-  apply auto
-proof-
-  fix c
-  assume ide_c: "S.ide c"
-  then have arr_c : "S.arr c" by simp
-
-  interpret DC : discrete_category "S.set c"
-    using Cocone.is_discrete_category.
-  interpret AbC : category Ab.comp
-    using Ab.is_category.
-  interpret F : "functor" DC.comp Ab.comp "(Cocone.cocone c)"
-    using \<tau>.\<tau>fun [OF ide_c].
-
-  show "colimit (discrete_category.comp (S.set c)) Ab.comp (Cocone.cocone c)
-          (coproduct_inc_nattrafo c) (Some (Ab.Id' (coproduct_of_A (S.set c))))
-          (coproduct_UP_map c)"
-    unfolding colimit_def
-    apply (simp add: AbC.category_axioms DC.category_axioms F.functor_axioms)
-  proof
-    interpret Const : constant_functor 
-     "(discrete_category.comp (S.set c))" Ab.comp
-     "(Some (Ab.Id' (coproduct_of_A (S.set c))))"
-      unfolding constant_functor_def
-      apply (simp add: DC.category_axioms AbC.category_axioms)
-      unfolding constant_functor_axioms_def
-      unfolding Ab.comp_def
-      unfolding AbCC.ide_char
-      apply auto
-       apply (rule_tac AbCC.Arr_Id)
-      unfolding Ab.Obj'_def
-      using coproduct_comm_group apply blast
-      by (simp add: Ab.Dom'_def Ab.Id'_def)
-
-    have ide_cop : "AbCC.ide (Some (Ab.Id' (coproduct_of_A (S.set c))))"
-      apply (rule_tac AbCC.ide_Some_Id)
-      unfolding Ab.Obj'_def
-      using coproduct_comm_group by blast
-    show nat: "natural_transformation DC.comp Ab.comp (Cocone.cocone c) Const.map
-     (coproduct_inc_nattrafo c)"
-      unfolding natural_transformation_def
-      apply (simp add: AbC.category_axioms DC.category_axioms 
-                       F.functor_axioms Const.is_functor)
-      unfolding natural_transformation_axioms_def
-      apply auto
-    proof-
-      show "\<And>f. \<not> DC.arr f \<Longrightarrow> coproduct_inc_nattrafo c f = AbC.null"
-        unfolding coproduct_inc_nattrafo_def
-        by simp
-      have hom_implies_arr: "\<And>x y z. AbCC.in_hom x y z \<Longrightarrow> AbCC.arr x" by blast
-      have arr : "\<And>f. DC.arr f \<Longrightarrow> AbCC.arr (coproduct_inc_nattrafo c f)"
-        unfolding coproduct_inc_nattrafo_def
-        apply simp
-        using hom_implies_arr [OF coproduct_inclusion_in_hom].
-      interpret Constf : constant_functor DC.comp AbCC.comp obj
-        unfolding constant_functor_def
-        unfolding constant_functor_axioms_def
-         apply (simp add: DC.category_axioms AbCC.induces_category)
-        using Cocone.ide_obj
-        unfolding Ab.comp_def by simp
-      show dom: "\<And>f. DC.arr f \<Longrightarrow> AbC.dom (coproduct_inc_nattrafo c f) = Cocone.cocone c f"
-        unfolding Ab.comp_def
-        unfolding AbCC.dom_char
-        apply (simp add: arr)
-        apply (subst coproduct_cocone.cocone_def)
-        unfolding coproduct_cocone_def
-        unfolding coproduct_cocone_axioms_def
-         apply (simp add: AbCC.induces_category)
-        using Cocone.ide_obj
-        unfolding Ab.comp_def
-         apply simp
-        unfolding S.ideD(2) [OF ide_c]
-        apply (subst Constf.map_def)
-        unfolding coproduct_inc_nattrafo_def
-        apply simp
-        unfolding coproduct_inclusion_def
-        apply (simp add: Ab.Dom'_def)
-        unfolding obj_def
-        by simp
-      show cod: "\<And>f. DC.arr f \<Longrightarrow>
-         AbC.cod (coproduct_inc_nattrafo c f) =
-         Some (Ab.Id' (coproduct_of_A (S.set c)))"
-        unfolding Ab.comp_def
-        unfolding AbCC.cod_char
-        apply (simp add: arr)
-        unfolding coproduct_inc_nattrafo_def
-        apply simp
-        unfolding coproduct_inclusion_def
-        by (simp add: Ab.Cod'_def)
-
-      show "\<And>f. DC.arr f \<Longrightarrow>
-         Ab.comp (Some (Ab.Id' (coproduct_of_A (S.set c))))
-          (coproduct_inc_nattrafo c f) =
-         coproduct_inc_nattrafo c f"
-        apply (rule_tac AbC.comp_ide_arr)
-        unfolding Ab.comp_def
-        apply (simp add: ide_cop)
-        apply (rule_tac AbCC.seqI)
-        using arr apply simp
-         apply (simp add: ide_cop)
-        unfolding reverse_equality [OF Ab.comp_def]
-        unfolding cod
-        apply (rule_tac AbC.ideD(2))
-        unfolding Ab.comp_def
-        using ide_cop.
-      show "\<And>f. DC.arr f \<Longrightarrow>
-         Ab.comp (coproduct_inc_nattrafo c f) (Cocone.cocone c f) =
-         coproduct_inc_nattrafo c f"
-        apply (rule_tac AbC.comp_arr_ide)
-        unfolding Cocone.cocone_def
-        unfolding S.ideD(2) [OF ide_c]
-        unfolding Ab.comp_def
-        unfolding Constf.map_def
-         apply simp
-        using Cocone.ide_obj
-        unfolding Ab.comp_def apply simp
-        apply simp
-        apply (rule_tac AbCC.seqI)
-          apply (rule_tac AbCC.ideD(1))
-        unfolding reverse_equality [OF Ab.comp_def]
-        using Cocone.ide_obj apply simp
-        using arr apply (simp add: Ab.comp_def)
-        unfolding dom
-        unfolding Cocone.cocone_def
-        unfolding S.ideD(2) [OF ide_c]
-        unfolding Ab.comp_def
-        unfolding Constf.map_def
-        apply simp
-        apply (subst AbCC.ideD(3))
-        using Cocone.ide_obj
-        unfolding Ab.comp_def
-        by simp_all
-    qed
-    show "colimit_axioms DC.comp Ab.comp (Cocone.cocone c) (coproduct_inc_nattrafo c)
-     (Some (Ab.Id' (coproduct_of_A (S.set c)))) (coproduct_UP_map c)"
-      unfolding colimit_axioms_def
-      apply auto
-    proof-
-      show "AbC.ide (Some (Ab.Id' (coproduct_of_A (S.set c))))"
-        using ide_cop
-        unfolding Ab.comp_def.
-      show "cocone DC.comp Ab.comp (Cocone.cocone c)
-     (Some (Ab.Id' (coproduct_of_A (S.set c)))) (coproduct_inc_nattrafo c)"
-        unfolding cocone_def
-        using nat.
-      show UP_in_hom: "\<And>\<sigma> x. cocone DC.comp Ab.comp (Cocone.cocone c) x \<sigma> \<Longrightarrow>
-           AbC.ide x \<Longrightarrow>
-           AbC.in_hom (coproduct_UP_map c x \<sigma>)
-            (Some (Ab.Id' (coproduct_of_A (S.set c)))) x"
-        apply (rule_tac AbC.in_homI)
-      proof-
-        fix \<sigma> :: "'d SetCat.arr DC.arr \<Rightarrow> ('d SetCat.arr \<Rightarrow> 'a, 'b) Ab_hom" 
-        fix x :: "('d SetCat.arr \<Rightarrow> 'a, 'b) Ab_hom"
-        assume "cocone DC.comp Ab.comp (Cocone.cocone c) x \<sigma>"
-        then interpret \<sigma>: natural_transformation DC.comp Ab.comp 
-          "(Cocone.cocone c)" "(constant_functor.map DC.comp Ab.comp x)" \<sigma>
-          unfolding cocone_def.
-        assume ide_x : "AbC.ide x"
-        then interpret X : comm_group "Ab.Dom' (the x)"
-          unfolding Ab.comp_def
-          unfolding AbCC.ide_char
-          unfolding Ab.Arr'_def
-          unfolding Ab.Obj'_def
-          by simp
-        show "AbC.arr (coproduct_UP_map c x \<sigma>)"
-          unfolding Ab.comp_def
-          unfolding AbCC.arr_char
-          apply (subst coproduct_UP_map_def)
-          apply simp
-          unfolding Ab.Arr'_def
-          unfolding Ab.Obj'_def Ab.Dom'_def Ab.Cod'_def
-          unfolding coproduct_UP_map_def
-          apply auto
-          using coproduct_comm_group apply blast
-          using X.comm_group_axioms apply simp
-          unfolding coproduct_of_A_def apply simp
-          unfolding hom_def apply auto
-          unfolding X.finset_sum_def
-          apply (rule_tac X.sum_carrier)
-
-
-
-
-
-
-
-
-(*TODO: Define a colimit_functor, that sends a set S to the direct sum of S copies of A*)
-
-end
-
-
-
-locale functor_restricts_to_Ab =
-  A_set : functor_category A pointed_set.pointed_set_comp +
-  B_set : functor_category B pointed_set.pointed_set_comp +
-  F : "functor" A_set.comp B_set.comp F
-  for A :: "'a comp"
-  and B :: "'b comp"
-  and F +
-assumes F_preserves_binary_products : "\<And>a b p p1 p2 up.
-      binary_product A_set.comp a b p p1 p2 up \<Longrightarrow>
-\<exists>Fup. binary_product B_set.comp (F a) (F b) (F p) (F p1) (F p2) Fup"
-  and F_preserves_terminal_object : "\<And>a.
-       A_set.terminal a \<Longrightarrow> B_set.terminal (F a)"
-begin
-
-(*TODO: Construct a functor from A_Ab to B_Ab*)
-(*Later use this locale to restrict pi0 and \<Omega> to abelian groups.*)
-
-end
 
 
 end
