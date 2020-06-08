@@ -1783,7 +1783,7 @@ proof-
     using Diff.img_is_subgroup.
 qed
 
-lemma "comm_group (homology_group n)"
+lemma is_comm_group: "comm_group (homology_group n)"
   unfolding homology_group_def
   apply (rule_tac comm_group.abelian_FactGroup)
    apply (simp add: cycle_group_group)

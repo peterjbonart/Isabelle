@@ -109,7 +109,7 @@ lemma is_functor: "functor A_B.comp A_C.comp map"
 end
 
 
-
+(*
 locale gamma_set =
   A: "functor" pointed_fin_set.comp pointed_set.pointed_set_comp A
   for A :: "(nat \<times> nat list) option \<Rightarrow> ('a pointed_set.LC pointed_set.parr) option" +
@@ -117,11 +117,11 @@ locale gamma_set =
   preserves_point : "category.terminal pointed_set.pointed_set_comp (A (Some (1, [0])))"
 begin
 end
+*)
 
 
-
-locale Homology =
-  Coeff: gamma_set Coeff +
+locale SphereCoeffHomology =
+  Coeff: "functor" pointed_fin_set.comp pointed_set.pointed_set_comp Coeff +
   Y : pointed_simplicial_set Y
   for Coeff :: "(nat \<times> nat list) option \<Rightarrow> ('a pointed_set.LC pointed_set.parr) option"
   and Y :: "(nat \<times> nat list) option \<Rightarrow> ('a pointed_set.LC pointed_set.parr) option"
@@ -185,8 +185,7 @@ lemma smash_with_Y: "functor Gamma.comp sSet.comp smash_with_Y"
 
 interpretation set_endofunctor: gammaset_as_endofunctor Coeff
   unfolding gammaset_as_endofunctor_def
-  using Coeff.gamma_set_axioms
-  unfolding gamma_set_def
+  using Coeff.functor_axioms
   by simp
 
 interpretation sSet_endofunctor: compose_with_functor 

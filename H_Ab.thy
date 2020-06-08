@@ -562,29 +562,29 @@ definition H_on_arrow :: "gamma \<Rightarrow> 'a LC \<Rightarrow> 'a LC" where
 
 
 
-definition HFunctor :: "gamma \<Rightarrow> 'a LC parr option" where
-  "HFunctor = MkFunctor fin_set.comp pointed_set_comp
+definition HFunctor' :: "gamma \<Rightarrow> 'a LC parr option" where
+  "HFunctor' = MkFunctor fin_set.comp pointed_set_comp
                (\<lambda>f. Some (MkArr (A_tothe (fin_set.Dom' (the f))) 
                                 (A_tothe (fin_set.Cod' (the f))) 
                                 (H_on_arrow f)))"
 
 
-lemma HFunctor_arr: assumes arr_f : "partial_magma.arr fin_set.comp f"
-  shows "partial_magma.arr pointed_set_comp (HFunctor f)"
+lemma HFunctor'_arr: assumes arr_f : "partial_magma.arr fin_set.comp f"
+  shows "partial_magma.arr pointed_set_comp (HFunctor' f)"
   unfolding pointed_set_comp_def
   apply (subst classical_category.arr_char [OF ccpf])
-  apply (subst HFunctor_def)
+  apply (subst HFunctor'_def)
   apply (simp add: arr_f)
   unfolding Arr'_def setcat.Arr_def apply auto
 proof-
-  show "fst (the (HFunctor f)) \<in> extensional (snd (fst (snd (the (HFunctor f)))))"
-    unfolding HFunctor_def
+  show "fst (the (HFunctor' f)) \<in> extensional (snd (fst (snd (the (HFunctor' f)))))"
+    unfolding HFunctor'_def
     using arr_f apply simp
     unfolding MkArr_def by simp
   fix x
-  assume "x \<in> snd (fst (snd (the (HFunctor f))))"
+  assume "x \<in> snd (fst (snd (the (HFunctor' f))))"
   then have x_in_dom: "x \<in> snd (A_tothe (length (snd (the f))))"
-    unfolding HFunctor_def
+    unfolding HFunctor'_def
     using arr_f apply simp
     unfolding MkArr_def by simp
   obtain xs where xs_def: "x = Join xs \<and>
@@ -610,8 +610,8 @@ proof-
     apply simp
     using as_in_G by simp
 
-  show "fst (the (HFunctor f)) x \<in> snd (snd (snd (the (HFunctor f))))"
-    unfolding HFunctor_def
+  show "fst (the (HFunctor' f)) x \<in> snd (snd (snd (the (HFunctor' f))))"
+    unfolding HFunctor'_def
     apply (simp add: arr_f)
     unfolding MkArr_def apply (simp add: x_in_dom)
     unfolding H_on_arrow_def
@@ -620,16 +620,16 @@ proof-
     unfolding A_def apply simp
     using pf_in_G by simp
 next
-  show "Obj' (fst (snd (the (HFunctor f))))"
-    unfolding HFunctor_def MkArr_def
+  show "Obj' (fst (snd (the (HFunctor' f))))"
+    unfolding HFunctor'_def MkArr_def
     using arr_f apply simp
     using A_tothe_obj.
-  show "Obj' (snd (snd (the (HFunctor f))))"
-    unfolding HFunctor_def MkArr_def
+  show "Obj' (snd (snd (the (HFunctor' f))))"
+    unfolding HFunctor'_def MkArr_def
     using arr_f apply simp
     using A_tothe_obj.
-  show "fst (the (HFunctor f)) (fst (fst (snd (the (HFunctor f))))) = fst (snd (snd (the (HFunctor f))))"
-    unfolding HFunctor_def MkArr_def
+  show "fst (the (HFunctor' f)) (fst (fst (snd (the (HFunctor' f))))) = fst (snd (snd (the (HFunctor' f))))"
+    unfolding HFunctor'_def MkArr_def
     using arr_f A_tothe_obj
     unfolding Obj'_def apply simp
   proof-
@@ -668,7 +668,7 @@ next
   qed
 qed
 
-lemma HFunctor_Id: "the (HFunctor (Some (fin_set.Id' n))) = Id' (A_tothe n)"
+lemma HFunctor'_Id: "the (HFunctor' (Some (fin_set.Id' n))) = Id' (A_tothe n)"
   apply (rule_tac fun_eq_char)
 proof-
   have "fin_set.Arr' (fin_set.Id' n)"
@@ -678,27 +678,27 @@ proof-
     unfolding fin_set.comp_def
     using classical_category.arr_char [OF fin_set.is_classical_category]
     by simp
-  then have "partial_magma.arr pointed_set_comp (HFunctor (Some (fin_set.Id' n)))"
-    apply (rule_tac HFunctor_arr)
+  then have "partial_magma.arr pointed_set_comp (HFunctor' (Some (fin_set.Id' n)))"
+    apply (rule_tac HFunctor'_arr)
     by simp
-  then show "Arr' (the (HFunctor (Some (fin_set.Id' n))))"
+  then show "Arr' (the (HFunctor' (Some (fin_set.Id' n))))"
     using classical_category.arr_char [OF ccpf]
     unfolding reverse_equality [OF pointed_set_comp_def]
     by blast
   show "Arr' (Id' (A_tothe n))"
     using classical_category.Arr_Id [OF ccpf A_tothe_obj].
-  show "fst (snd (the (HFunctor (Some (fin_set.Id' n))))) = fst (snd (Id' (A_tothe n)))"
-    unfolding HFunctor_def MkArr_def 
+  show "fst (snd (the (HFunctor' (Some (fin_set.Id' n))))) = fst (snd (Id' (A_tothe n)))"
+    unfolding HFunctor'_def MkArr_def 
     using arr_id apply simp
     unfolding Id'_def fin_set.Id'_def by simp
-  show "snd (snd (the (HFunctor (Some (fin_set.Id' n))))) = snd (snd (Id' (A_tothe n)))"
-    unfolding HFunctor_def MkArr_def 
+  show "snd (snd (the (HFunctor' (Some (fin_set.Id' n))))) = snd (snd (Id' (A_tothe n)))"
+    unfolding HFunctor'_def MkArr_def 
     using arr_id apply simp
     unfolding Id'_def fin_set.Id'_def by simp
   fix x
-  assume "x \<in> snd (fst (snd (the (HFunctor (Some (fin_set.Id' n))))))"
+  assume "x \<in> snd (fst (snd (the (HFunctor' (Some (fin_set.Id' n))))))"
   then have x_in_dom : "x \<in> snd (A_tothe (length (snd (fin_set.Id' n))))"
-    unfolding HFunctor_def MkArr_def
+    unfolding HFunctor'_def MkArr_def
     using arr_id by simp
   then obtain xs where xs_def: "x = Join xs \<and>
          length xs = length (snd (fin_set.Id' n)) \<and> (\<forall>k<length (snd (fin_set.Id' n)). get xs k \<in> snd A)"
@@ -711,8 +711,8 @@ proof-
     unfolding fin_set.Id'_def
     using as_def by simp
 
-  show "fst (the (HFunctor (Some (fin_set.Id' n)))) x = fst (Id' (A_tothe n)) x"
-    unfolding HFunctor_def MkArr_def
+  show "fst (the (HFunctor' (Some (fin_set.Id' n)))) x = fst (Id' (A_tothe n)) x"
+    unfolding HFunctor'_def MkArr_def
     apply (simp add: arr_id x_in_dom)
     unfolding H_on_arrow_def some_eq
     apply simp
@@ -726,9 +726,9 @@ proof-
 qed
 
 
-lemma HFunctor_dom : assumes arr_f : "partial_magma.arr fin_set.comp f" 
-  shows "partial_magma.dom pointed_set_comp (HFunctor f) =
-                      HFunctor (partial_magma.dom fin_set.comp f)"
+lemma HFunctor'_dom : assumes arr_f : "partial_magma.arr fin_set.comp f" 
+  shows "partial_magma.dom pointed_set_comp (HFunctor' f) =
+                      HFunctor' (partial_magma.dom fin_set.comp f)"
 proof-
   have arr_id : "\<And>n. partial_magma.arr fin_set.comp (Some (fin_set.Id' n))"
     unfolding fin_set.comp_def
@@ -736,24 +736,24 @@ proof-
     using classical_category.Arr_Id [OF fin_set.is_classical_category]
     by simp
 
-  show "partial_magma.dom pointed_set_comp (HFunctor f) = HFunctor (partial_magma.dom fin_set.comp f)"
+  show "partial_magma.dom pointed_set_comp (HFunctor' f) = HFunctor' (partial_magma.dom fin_set.comp f)"
     unfolding pointed_set_comp_def
     apply (subst classical_category.dom_char [OF ccpf])
     unfolding reverse_equality [OF pointed_set_comp_def]
-    apply (simp add: HFunctor_arr [OF arr_f])
+    apply (simp add: HFunctor'_arr [OF arr_f])
     unfolding fin_set.comp_def
     apply (subst classical_category.dom_char [OF fin_set.is_classical_category])
     unfolding reverse_equality [OF fin_set.comp_def]
     apply (simp add: arr_f)
-    apply (subst HFunctor_def)
+    apply (subst HFunctor'_def)
     unfolding MkArr_def apply (simp add: arr_f)
-    apply (subst reverse_equality [OF HFunctor_Id])
-    unfolding HFunctor_def by (simp add: arr_id)
+    apply (subst reverse_equality [OF HFunctor'_Id])
+    unfolding HFunctor'_def by (simp add: arr_id)
 qed
 
-lemma HFunctor_cod : assumes arr_f : "partial_magma.arr fin_set.comp f" 
-  shows "partial_magma.cod pointed_set_comp (HFunctor f) =
-                      HFunctor (partial_magma.cod fin_set.comp f)"
+lemma HFunctor'_cod : assumes arr_f : "partial_magma.arr fin_set.comp f" 
+  shows "partial_magma.cod pointed_set_comp (HFunctor' f) =
+                      HFunctor' (partial_magma.cod fin_set.comp f)"
 proof-
   have arr_id : "\<And>n. partial_magma.arr fin_set.comp (Some (fin_set.Id' n))"
     unfolding fin_set.comp_def
@@ -761,27 +761,27 @@ proof-
     using classical_category.Arr_Id [OF fin_set.is_classical_category]
     by simp
 
-  show "partial_magma.cod pointed_set_comp (HFunctor f) = HFunctor (partial_magma.cod fin_set.comp f)"
+  show "partial_magma.cod pointed_set_comp (HFunctor' f) = HFunctor' (partial_magma.cod fin_set.comp f)"
     unfolding pointed_set_comp_def
     apply (subst classical_category.cod_char [OF ccpf])
     unfolding reverse_equality [OF pointed_set_comp_def]
-    apply (simp add: HFunctor_arr [OF arr_f])
+    apply (simp add: HFunctor'_arr [OF arr_f])
     unfolding fin_set.comp_def
     apply (subst classical_category.cod_char [OF fin_set.is_classical_category])
     unfolding reverse_equality [OF fin_set.comp_def]
     apply (simp add: arr_f)
-    apply (subst HFunctor_def)
+    apply (subst HFunctor'_def)
     unfolding MkArr_def apply (simp add: arr_f)
-    apply (subst reverse_equality [OF HFunctor_Id])
-    unfolding HFunctor_def by (simp add: arr_id)
+    apply (subst reverse_equality [OF HFunctor'_Id])
+    unfolding HFunctor'_def by (simp add: arr_id)
 qed
 
 
-lemma HFunctor_comp: assumes arr_f: "partial_magma.arr fin_set.comp f" 
+lemma HFunctor'_comp: assumes arr_f: "partial_magma.arr fin_set.comp f" 
                   and arr_g: "partial_magma.arr fin_set.comp g"
   and seq: "partial_magma.dom fin_set.comp g = partial_magma.cod fin_set.comp f"
-  shows "the (HFunctor (Some (fin_set.Comp' (the g) (the f)))) =
-                      (the (HFunctor g) \<cdot> the (HFunctor f))"
+  shows "the (HFunctor' (Some (fin_set.Comp' (the g) (the f)))) =
+                      (the (HFunctor' g) \<cdot> the (HFunctor' f))"
   apply (rule_tac fun_eq_char)
 proof-
   have gf_comp_eq: "Some (fin_set.Comp' (the g) (the f)) = fin_set.comp g f"
@@ -790,27 +790,27 @@ proof-
   have arr_gf: "partial_magma.arr fin_set.comp (fin_set.comp g f)"
     using category.seqI [OF fin_set.is_category arr_f arr_g seq].
 
-  have arr_hgf: "partial_magma.arr pointed_set_comp (HFunctor (fin_set.comp g f))"
-    apply (rule_tac HFunctor_arr)
+  have arr_hgf: "partial_magma.arr pointed_set_comp (HFunctor' (fin_set.comp g f))"
+    apply (rule_tac HFunctor'_arr)
     using category.seqI [OF fin_set.is_category arr_f arr_g seq].
-  then show "Arr' (the (HFunctor (Some (fin_set.Comp' (the g) (the f)))))"
+  then show "Arr' (the (HFunctor' (Some (fin_set.Comp' (the g) (the f)))))"
     apply (subst gf_comp_eq)
     using arr_char by blast
-  have arr_hf : "partial_magma.arr pointed_set_comp (HFunctor f)"
-    using HFunctor_arr [OF arr_f].
-  have arr_hg : "partial_magma.arr pointed_set_comp (HFunctor g)"
-    using HFunctor_arr [OF arr_g].
-  have h_seq : "partial_magma.dom pointed_set_comp (HFunctor g) = 
-                partial_magma.cod pointed_set_comp (HFunctor f)"
-    unfolding HFunctor_dom [OF arr_g]
-              HFunctor_cod [OF arr_f]
+  have arr_hf : "partial_magma.arr pointed_set_comp (HFunctor' f)"
+    using HFunctor'_arr [OF arr_f].
+  have arr_hg : "partial_magma.arr pointed_set_comp (HFunctor' g)"
+    using HFunctor'_arr [OF arr_g].
+  have h_seq : "partial_magma.dom pointed_set_comp (HFunctor' g) = 
+                partial_magma.cod pointed_set_comp (HFunctor' f)"
+    unfolding HFunctor'_dom [OF arr_g]
+              HFunctor'_cod [OF arr_f]
     using seq by simp
-  have arr_hgf2 : "partial_magma.arr pointed_set_comp (pointed_set_comp (HFunctor g) (HFunctor f))"
+  have arr_hgf2 : "partial_magma.arr pointed_set_comp (pointed_set_comp (HFunctor' g) (HFunctor' f))"
     using category.seqI [OF is_category arr_hf arr_hg h_seq].
-  have "Arr' (the (Some (the (HFunctor g) \<cdot> the (HFunctor f))))"
+  have "Arr' (the (Some (the (HFunctor' g) \<cdot> the (HFunctor' f))))"
     apply (subst reverse_equality [OF comp_char [OF arr_hf arr_hg h_seq]])
     using arr_char arr_hgf2 by blast
-  then show "Arr' (the (HFunctor g) \<cdot> the (HFunctor f))"
+  then show "Arr' (the (HFunctor' g) \<cdot> the (HFunctor' f))"
     by simp
 
   have "(if partial_magma.arr fin_set.comp f then Some (fin_set.Id' (fst (the f))) else None) =
@@ -825,66 +825,66 @@ proof-
   then have Seq': "(fst (the f)) = length (snd (the g))"
     unfolding fin_set.Id'_def by simp
 
-  have Arr'_hf: "Arr' (the (HFunctor f))"
+  have Arr'_hf: "Arr' (the (HFunctor' f))"
     using arr_hf arr_char by blast
-  have Arr'_hg: "Arr' (the (HFunctor g))"
+  have Arr'_hg: "Arr' (the (HFunctor' g))"
     using arr_hg arr_char by blast
-  have h_Seq' : "snd (snd (the (HFunctor f))) = fst (snd (the (HFunctor g)))"
+  have h_Seq' : "snd (snd (the (HFunctor' f))) = fst (snd (the (HFunctor' g)))"
   proof-
-    have "Some (Id' (snd (snd (the (HFunctor f))))) = Some (Id' (fst (snd (the (HFunctor g)))))"
+    have "Some (Id' (snd (snd (the (HFunctor' f))))) = Some (Id' (fst (snd (the (HFunctor' g)))))"
       apply (subst reverse_equality [OF dom_char [OF arr_hg]])
       apply (subst reverse_equality [OF cod_char [OF arr_hf]])
       using h_seq by simp
-    then show "snd (snd (the (HFunctor f))) = fst (snd (the (HFunctor g)))"
+    then show "snd (snd (the (HFunctor' f))) = fst (snd (the (HFunctor' g)))"
       unfolding Id'_def by simp
   qed
 
-  show "fst (snd (the (HFunctor (Some (fin_set.Comp' (the g) (the f)))))) =
-    fst (snd (the (HFunctor g) \<cdot> the (HFunctor f)))"
+  show "fst (snd (the (HFunctor' (Some (fin_set.Comp' (the g) (the f)))))) =
+    fst (snd (the (HFunctor' g) \<cdot> the (HFunctor' f)))"
     apply (subst gf_comp_eq)
     apply (subst dom_comp [OF Arr'_hf Arr'_hg h_Seq'])
-    unfolding HFunctor_def MkArr_def apply (simp add: arr_gf arr_f)
+    unfolding HFunctor'_def MkArr_def apply (simp add: arr_gf arr_f)
     apply (subst reverse_equality [OF gf_comp_eq])
     unfolding fin_set.Comp'_def by simp
-  show "snd (snd (the (HFunctor (Some (fin_set.Comp' (the g) (the f)))))) =
-    snd (snd (the (HFunctor g) \<cdot> the (HFunctor f)))"
+  show "snd (snd (the (HFunctor' (Some (fin_set.Comp' (the g) (the f)))))) =
+    snd (snd (the (HFunctor' g) \<cdot> the (HFunctor' f)))"
     apply (subst gf_comp_eq)
     apply (subst cod_comp [OF Arr'_hf Arr'_hg h_Seq'])
-    unfolding HFunctor_def MkArr_def apply (simp add: arr_gf arr_g)
+    unfolding HFunctor'_def MkArr_def apply (simp add: arr_gf arr_g)
     apply (subst reverse_equality [OF gf_comp_eq])
     unfolding fin_set.Comp'_def by simp
   fix x
-  assume "x \<in> snd (fst (snd (the (HFunctor (Some (fin_set.Comp' (the g) (the f)))))))"
-  then have x_in_dom : "x \<in> snd (fst (snd (the (HFunctor f))))"
-    unfolding HFunctor_def MkArr_def gf_comp_eq apply (simp add: arr_gf arr_f)
+  assume "x \<in> snd (fst (snd (the (HFunctor' (Some (fin_set.Comp' (the g) (the f)))))))"
+  then have x_in_dom : "x \<in> snd (fst (snd (the (HFunctor' f))))"
+    unfolding HFunctor'_def MkArr_def gf_comp_eq apply (simp add: arr_gf arr_f)
     unfolding reverse_equality [OF gf_comp_eq] fin_set.Comp'_def 
     by simp
   then have x_in_A_f: "x \<in> snd (A_tothe (length (snd (the f))))"
-    unfolding HFunctor_def MkArr_def by (simp add: arr_f)
+    unfolding HFunctor'_def MkArr_def by (simp add: arr_f)
   then have x_in_A_gf: "x \<in> snd (A_tothe (length (snd (fin_set.Comp' (the g) (the f)))))"
     unfolding fin_set.Comp'_def by simp
   have Hf_x_in_dom: "H_on_arrow f x \<in> snd (A_tothe (length (snd (the g))))"
   proof-
-    have "fst (forget (the (HFunctor f)))
-  \<in>  (fst (snd (forget (the (HFunctor f)))) \<rightarrow> snd (snd (forget (the (HFunctor f)))))"
+    have "fst (forget (the (HFunctor' f)))
+  \<in>  (fst (snd (forget (the (HFunctor' f)))) \<rightarrow> snd (snd (forget (the (HFunctor' f)))))"
       using Arr'_hf
       unfolding Arr'_def setcat.Arr_def by auto
-    then have "fst (forget (the (HFunctor f))) x \<in> snd (snd (forget (the (HFunctor f))))"
+    then have "fst (forget (the (HFunctor' f))) x \<in> snd (snd (forget (the (HFunctor' f))))"
       using x_in_dom by auto
     then show "H_on_arrow f x \<in> snd (A_tothe (length (snd (the g))))"
-      unfolding HFunctor_def MkArr_def apply (simp add: arr_f x_in_A_f)
+      unfolding HFunctor'_def MkArr_def apply (simp add: arr_f x_in_A_f)
       using Seq' by simp
   qed
 
-  have eq1: "fst (the (HFunctor (Some (fin_set.Comp' (the g) (the f))))) x =
+  have eq1: "fst (the (HFunctor' (Some (fin_set.Comp' (the g) (the f))))) x =
              H_on_arrow (Some (fin_set.Comp' (the g) (the f))) x"
-    unfolding gf_comp_eq HFunctor_def MkArr_def
+    unfolding gf_comp_eq HFunctor'_def MkArr_def
     using arr_gf x_in_A_gf 
     unfolding reverse_equality [OF gf_comp_eq] by simp
 
-  have eq2: "fst (the (HFunctor g)) (fst (the (HFunctor f)) x) = H_on_arrow g (H_on_arrow f x)"
+  have eq2: "fst (the (HFunctor' g)) (fst (the (HFunctor' f)) x) = H_on_arrow g (H_on_arrow f x)"
     using x_in_dom
-    unfolding HFunctor_def MkArr_def by (simp add: arr_f arr_g Hf_x_in_dom)
+    unfolding HFunctor'_def MkArr_def by (simp add: arr_f arr_g Hf_x_in_dom)
 
   have some_eq : "(SOME as.
              Join (fmap Just as) = Join (fmap Just (G.push_forward (the f) (SOME as. Join (fmap Just as) = x)))) =
@@ -900,7 +900,7 @@ proof-
       using fmap_preserves_inj [OF fmap_eq] by simp
   qed
 
-  show "fst (the (HFunctor (Some (fin_set.Comp' (the g) (the f))))) x = fst (the (HFunctor g) \<cdot> the (HFunctor f)) x"
+  show "fst (the (HFunctor' (Some (fin_set.Comp' (the g) (the f))))) x = fst (the (HFunctor' g) \<cdot> the (HFunctor' f)) x"
     unfolding Comp'_def apply (simp add: Arr'_hf Arr'_hg h_Seq' x_in_dom)
     apply (subst eq1)
     apply (subst eq2)
@@ -931,25 +931,25 @@ qed
 
 
 
-lemma "functor fin_set.comp pointed_set_comp HFunctor"
+lemma is_functor_non_pointed: "functor fin_set.comp pointed_set_comp HFunctor'"
   unfolding functor_def
   apply (simp add: fin_set.is_category is_category)
   unfolding functor_axioms_def
   apply auto
 proof-
   fix f
-  show "\<not> partial_magma.arr fin_set.comp f \<Longrightarrow> HFunctor f = partial_magma.null pointed_set_comp"
-    unfolding HFunctor_def by simp
+  show "\<not> partial_magma.arr fin_set.comp f \<Longrightarrow> HFunctor' f = partial_magma.null pointed_set_comp"
+    unfolding HFunctor'_def by simp
   assume arr_f : "partial_magma.arr fin_set.comp f" 
-  show arr_hf: "partial_magma.arr pointed_set_comp (HFunctor f)"
-    using HFunctor_arr [OF arr_f].
+  show arr_hf: "partial_magma.arr pointed_set_comp (HFunctor' f)"
+    using HFunctor'_arr [OF arr_f].
   have arr_id : "\<And>n. partial_magma.arr fin_set.comp (Some (fin_set.Id' n))"
     unfolding fin_set.comp_def
     apply (subst classical_category.arr_char [OF fin_set.is_classical_category])
     using classical_category.Arr_Id [OF fin_set.is_classical_category]
     by simp
 
-  show "partial_magma.dom pointed_set_comp (HFunctor f) = HFunctor (partial_magma.dom fin_set.comp f)"
+  show "partial_magma.dom pointed_set_comp (HFunctor' f) = HFunctor' (partial_magma.dom fin_set.comp f)"
     unfolding pointed_set_comp_def
     apply (subst classical_category.dom_char [OF ccpf])
     unfolding reverse_equality [OF pointed_set_comp_def]
@@ -958,11 +958,11 @@ proof-
     apply (subst classical_category.dom_char [OF fin_set.is_classical_category])
     unfolding reverse_equality [OF fin_set.comp_def]
     apply (simp add: arr_f)
-    apply (subst HFunctor_def)
+    apply (subst HFunctor'_def)
     unfolding MkArr_def apply (simp add: arr_f)
-    apply (subst reverse_equality [OF HFunctor_Id])
-    unfolding HFunctor_def by (simp add: arr_id)
-  show "partial_magma.cod pointed_set_comp (HFunctor f) = HFunctor (partial_magma.cod fin_set.comp f)"
+    apply (subst reverse_equality [OF HFunctor'_Id])
+    unfolding HFunctor'_def by (simp add: arr_id)
+  show "partial_magma.cod pointed_set_comp (HFunctor' f) = HFunctor' (partial_magma.cod fin_set.comp f)"
     unfolding pointed_set_comp_def
     apply (subst classical_category.cod_char [OF ccpf])
     unfolding reverse_equality [OF pointed_set_comp_def]
@@ -971,10 +971,10 @@ proof-
     apply (subst classical_category.cod_char [OF fin_set.is_classical_category])
     unfolding reverse_equality [OF fin_set.comp_def]
     apply (simp add: arr_f)
-    apply (subst HFunctor_def)
+    apply (subst HFunctor'_def)
     unfolding MkArr_def apply (simp add: arr_f)
-    apply (subst reverse_equality [OF HFunctor_Id])
-    unfolding HFunctor_def by (simp add: arr_id)
+    apply (subst reverse_equality [OF HFunctor'_Id])
+    unfolding HFunctor'_def by (simp add: arr_id)
 next
   fix g f
   assume arr_gf: "partial_magma.arr fin_set.comp (fin_set.comp g f)"
@@ -983,41 +983,62 @@ next
       partial_magma.dom fin_set.comp g = partial_magma.cod fin_set.comp f"
     using category.seqE [OF fin_set.is_category arr_gf] by blast
 
-  have arr_hf: "partial_magma.arr pointed_set_comp (HFunctor f)"
-    apply (rule_tac HFunctor_arr)
+  have arr_hf: "partial_magma.arr pointed_set_comp (HFunctor' f)"
+    apply (rule_tac HFunctor'_arr)
     using gf_prop by simp
-  have arr_hg: "partial_magma.arr pointed_set_comp (HFunctor g)"
-    apply (rule_tac HFunctor_arr)
+  have arr_hg: "partial_magma.arr pointed_set_comp (HFunctor' g)"
+    apply (rule_tac HFunctor'_arr)
     using gf_prop by simp
-  have h_seq: "partial_magma.dom pointed_set_comp (HFunctor g) =
-               partial_magma.cod pointed_set_comp (HFunctor f)"
-    apply (subst HFunctor_dom)
+  have h_seq: "partial_magma.dom pointed_set_comp (HFunctor' g) =
+               partial_magma.cod pointed_set_comp (HFunctor' f)"
+    apply (subst HFunctor'_dom)
     using gf_prop apply simp
-    apply (subst HFunctor_cod)
+    apply (subst HFunctor'_cod)
     using gf_prop by simp_all
 
-  have arr_hgf: "partial_magma.arr pointed_set_comp (pointed_set_comp (HFunctor g) (HFunctor f))"
+  have arr_hgf: "partial_magma.arr pointed_set_comp (pointed_set_comp (HFunctor' g) (HFunctor' f))"
     apply (rule_tac category.seqI [OF is_category])
     using arr_hf arr_hg h_seq by simp_all
     
   have gf_comp_eq: "fin_set.comp g f = Some (fin_set.Comp' (the g) (the f))"
     apply (rule_tac category.seqE [OF fin_set.is_category arr_gf])
     using fin_set.comp_char.
-  have hgf_comp_eq : "pointed_set_comp (HFunctor g) (HFunctor f) =
-                      Some (Comp' (the (HFunctor g)) (the (HFunctor f)))"
+  have hgf_comp_eq : "pointed_set_comp (HFunctor' g) (HFunctor' f) =
+                      Some (Comp' (the (HFunctor' g)) (the (HFunctor' f)))"
     apply (rule_tac category.seqE [OF is_category arr_hgf])
     using comp_char.
-  show "HFunctor (fin_set.comp g f) = pointed_set_comp (HFunctor g) (HFunctor f)"
+  show "HFunctor' (fin_set.comp g f) = pointed_set_comp (HFunctor' g) (HFunctor' f)"
     apply (subst gf_comp_eq)
     apply (subst hgf_comp_eq)
-    apply (subst reverse_equality [OF HFunctor_comp])
+    apply (subst reverse_equality [OF HFunctor'_comp])
     using gf_prop apply simp_all
-    unfolding HFunctor_def MkArr_def
+    unfolding HFunctor'_def MkArr_def
     using arr_gf 
     unfolding reverse_equality [OF gf_comp_eq] 
     by simp
 qed
-    
+
+
+interpretation P : subcategory fin_set.comp pointed_fin_set.PointedArr'
+  using pointed_fin_set.is_subcategory.
+
+definition HFunctor where
+  "HFunctor = HFunctor' \<circ> P.map"
+
+
+interpretation Inc : inclusion_functor fin_set.comp pointed_fin_set.PointedArr'
+  unfolding inclusion_functor_def
+  apply (simp add: fin_set.is_category)
+  by (simp add: pointed_fin_set.is_subcategory)
+
+lemma is_functor : "functor pointed_fin_set.comp pointed_set_comp HFunctor"
+  unfolding HFunctor_def
+  apply (rule_tac functor_comp)
+  unfolding pointed_fin_set.comp_def
+  using Inc.is_functor apply simp
+  using is_functor_non_pointed.
+
+
 
 end
 
