@@ -1,4 +1,4 @@
-theory HomologySphereCoefficients
+theory HomologySModule
   imports Main
           Gamma
           simplicialSet

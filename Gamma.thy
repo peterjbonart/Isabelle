@@ -75,8 +75,8 @@ lemma getFaithful : "length xs = length ys \<Longrightarrow> (\<And> n. n < leng
    apply simp
   apply simp
 proof-
-  fix a xs ys
-  have "get ys n = get xs n \<or> True" by simp
+  fix a 
+  fix xs ys :: "'a list"
   assume ind: "(\<And>ys. length xs = length ys \<Longrightarrow>
               (\<And>n. n < length ys \<Longrightarrow> get xs n = get ys n) \<Longrightarrow> xs = ys)"
   assume length: "Suc (length xs) = length ys"
@@ -117,16 +117,16 @@ lemma rev_get_independence : "(\<And> n. n < m \<Longrightarrow> f n = g n) \<Lo
 locale fin_set
 begin
 
-abbreviation Dom' where
+abbreviation Dom' :: "nat \<times> nat list \<Rightarrow> nat" where
   "Dom' t \<equiv> length (snd t)"
 
-abbreviation Cod' where
+abbreviation Cod' :: "nat \<times> nat list \<Rightarrow> nat" where
   "Cod' t \<equiv> fst t"
 
-abbreviation Obj' where
+abbreviation Obj' :: "nat \<Rightarrow> bool" where
   "Obj' t \<equiv> True"
 
-definition Arr' where
+definition Arr' :: "nat \<times> nat list \<Rightarrow> bool" where
   "Arr' t \<equiv> (\<forall>n. (n < (Dom' t) \<longrightarrow> get (snd t) n < Cod' t))"
 
 definition Id' :: "nat \<Rightarrow> nat \<times> nat list" where

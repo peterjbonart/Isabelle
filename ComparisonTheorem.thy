@@ -1,7 +1,7 @@
 theory ComparisonTheorem
   imports Main
          "HOL-Algebra.Group"
-         HomologySphereCoefficients
+         HomologySModule
          ReducedHomology
          H_Ab
 begin

@@ -5,3 +5,12 @@ session "CategoryAndHomology" = "Category3" +
     "HOL-Homology"
   theories
     "HOL-Homology.Homology"
+
+
+session "Master" = "CategoryAndHomology" +
+  options [document = pdf, document_output = "output"]
+  theories
+    Gamma
+  document_files
+    "root.tex"
+  
