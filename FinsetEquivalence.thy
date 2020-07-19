@@ -517,7 +517,7 @@ I have no idea why this is necessary, but it is.*)
     from ide_b have arr_b : "A.arr b" by simp
     from ide_b have "fst (the b) = length (snd (the b))"
       by (metis A.ideD(2) arr_b fin_set.Id'_def option.sel pointed_fin_set.dom_char prod.collapse prod.simps(1))
-    assume gab : "\<guillemotleft>g : inclusionFunctor b \<rightarrow>\<^sub>B inclusionFunctor a\<guillemotright>"
+    assume gab : "B.in_hom g (inclusionFunctor b) (inclusionFunctor a)"
 
     from gab have dom_g: "B.dom g = inclusionFunctor b" using category.in_homE by blast
     from gab have cod_g: "B.cod g = inclusionFunctor a" using category.in_homE by blast
@@ -544,7 +544,7 @@ I have no idea why this is necessary, but it is.*)
 
     define f where f_def: "f = Some (fst (the a),rev_get (fst (the b))
                            (\<lambda>n. (SOME m. fst (the g) (K n) = K m)))"
-    show "\<guillemotleft>f : b \<rightarrow>\<^sub>A a\<guillemotright> \<and> inclusionFunctor f = g"
+    show "A.in_hom f b a \<and> inclusionFunctor f = g"
       apply auto
     proof
       show arr_f: "A.arr f"
@@ -800,7 +800,7 @@ proof-
           using subcategory.arr_char [OF finite_subcat] by blast
         then have "B.arr \<phi>"
           unfolding FiniteArr'_def by simp
-        show "\<guillemotleft>\<phi> : inclusionFunctor (Some (fin_set.Id' n)) \<rightarrow>\<^sub>B b\<guillemotright>"
+        show "B.in_hom \<phi> (inclusionFunctor (Some (fin_set.Id' n))) b"
           apply (rule_tac category.in_homI)
              apply (simp add: is_category)
             apply (simp add: \<open>B.arr \<phi>\<close>)
@@ -908,7 +908,7 @@ proof-
           using subcategory.arr_char [OF finite_subcat] by blast
         then have "B.arr \<psi>"
           unfolding FiniteArr'_def by simp
-        show "\<guillemotleft>\<psi> : b \<rightarrow>\<^sub>B inclusionFunctor (Some (fin_set.Id' n))\<guillemotright>"
+        show "B.in_hom \<psi> b (inclusionFunctor (Some (fin_set.Id' n)))"
           apply (rule_tac category.in_homI)
              apply (simp add: is_category)
             apply (simp add: \<open>B.arr \<psi>\<close>)

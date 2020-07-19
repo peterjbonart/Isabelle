@@ -323,6 +323,7 @@ qed
 
 
 
+
 lemma fun_comp_char : "Arr' f \<Longrightarrow> Arr' g \<Longrightarrow> Dom' f = Cod' g \<Longrightarrow> 
                       x \<in> snd (Dom' g) \<Longrightarrow> fst (f \<cdot> g) x = (fst f) (fst g x)"
   unfolding Comp'_def by simp

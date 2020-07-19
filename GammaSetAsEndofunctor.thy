@@ -589,7 +589,7 @@ next
 qed
 
 
-section "Natural transformation between finite_subset_image_functors"
+section "Natural transformation between image functors"
 
 definition finite_subset_image_nattrafo :: "'a parr
     \<Rightarrow> (('a pointed_set) \<times> ('a pointed_set)) option \<Rightarrow> 'a parr option" where
