@@ -256,3 +256,6 @@ theorem comparison :
    (FunCat.mkIde (P.Inl_functor \<circ> GroupToGammaset.HFunctor (RH.homology_group n)))"
   oops
 end
+
+end
+

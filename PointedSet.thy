@@ -1,4 +1,4 @@
-theory pointedSet
+theory PointedSet
   imports Main
          "Category3.SetCat"
          "Category3.InitialTerminal"
@@ -73,34 +73,32 @@ begin
 
 
 
-abbreviation Dom'
+abbreviation Dom' :: "'a pointed_arr \<Rightarrow> 'a pointed_set"
   where "Dom' t \<equiv> fst (snd t)"
 
-abbreviation Cod'
+abbreviation Cod' :: "'a pointed_arr \<Rightarrow> 'a pointed_set"
       where "Cod' t \<equiv> snd (snd t)"
 
-abbreviation Fun'
+abbreviation Fun' :: "'a pointed_arr \<Rightarrow> 'a \<Rightarrow> 'a"
       where "Fun' t \<equiv> fst t"
 
 fun forget :: "'a pointed_arr \<Rightarrow> ('a \<Rightarrow> 'a) \<times> 'a set \<times> 'a set" where
   "forget f = (Fun' f, snd (Dom' f), snd (Cod' f))" 
 
 
-definition Obj'
+definition Obj' :: "'a pointed_set \<Rightarrow> bool"
   where "Obj' X = (fst X \<in> (snd X))"
 
-definition Arr'
+definition Arr' :: "'a pointed_arr \<Rightarrow> bool"
   where "Arr' t = (setcat.Arr (forget t) \<and>
                   Obj' (Dom' t) \<and> Obj' (Cod' t) \<and>
                   Fun' t (fst (Dom' t)) = fst (Cod' t))"
 
-definition Id'
+definition Id' :: "'a pointed_set \<Rightarrow> 'a pointed_arr"
   where "Id' X \<equiv> (\<lambda> x \<in> (snd X). x,(X,X))"
 
 definition Comp'      (infixr "\<cdot>" 55)
-  where "Comp' s t \<equiv> (if Arr' t \<and> Arr' s \<and> Cod' t = Dom' s then
-      (compose (snd (Dom' t)) (Fun' s) (Fun' t), (Dom' t, Cod' s))
-      else (\<lambda>x. x, (undefined,{undefined}), (undefined,{})))"
+  where "Comp' s t \<equiv> (compose (snd (Dom' t)) (Fun' s) (Fun' t), (Dom' t, Cod' s))"
 
 
 
@@ -127,17 +125,12 @@ proof-
   have "setcat.Arr (forget g)" using \<open>Arr' g\<close> forget_arr by simp
   have A1: "snd (snd g) = fst (snd f)" using \<open>Dom' f = Cod' g\<close> by simp
     then have A2: "snd (snd (forget g)) = fst (snd (forget f))" by simp
-    show "forget
-     (if Arr' g \<and> Arr' f \<and> snd (snd g) = fst (snd f)
-      then (compose (snd (fst (snd g))) (fst f) (fst g), fst (snd g), snd (snd f))
-      else (\<lambda>x. x, (undefined, {undefined}), undefined, {})) =
-    (if setcat.Arr (forget g) \<and>
-        setcat.Arr (forget f) \<and> snd (snd (forget g)) = fst (snd (forget f))
-     then (compose (fst (snd (forget g))) (fst (forget f)) (fst (forget g)),
-           fst (snd (forget g)), snd (snd (forget f)))
+    show "forget (compose (snd (fst (snd g))) (fst f) (fst g), fst (snd g), snd (snd f)) =
+    (if setcat.Arr (forget g) \<and> setcat.Arr (forget f) \<and> snd (snd (forget g)) = fst (snd (forget f))
+     then (compose (fst (snd (forget g))) (fst (forget f)) (fst (forget g)), fst (snd (forget g)), snd (snd (forget f)))
      else (\<lambda>x. x, {undefined}, {}))"
       apply (simp add: \<open>Arr' f\<close> \<open>Arr' g\<close> Arr'_def \<open>setcat.Arr (forget f)\<close> \<open>setcat.Arr (forget g)\<close> A1 A2)
-      by (metis A1 \<open>Arr' f\<close> \<open>Arr' g\<close> pointed_set.Arr'_def)
+      using A2 \<open>setcat.Arr (forget f)\<close> \<open>setcat.Arr (forget g)\<close> by auto
   qed
 
 lemma forget_faithful : "Arr' f \<Longrightarrow> Arr' g \<Longrightarrow> snd f = snd g \<Longrightarrow>

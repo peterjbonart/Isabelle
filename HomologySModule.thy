@@ -1,12 +1,12 @@
 theory HomologySModule
   imports Main
           Gamma
-          simplicialSet
+          SimplicialSet
           "Category3.FunctorCategory"
           FinsetEquivalence
-          smashProduct
+          SmashProduct
           GammaSetAsEndofunctor
-          loopSpace
+          LoopSpace
 begin
 
 

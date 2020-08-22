@@ -1,6 +1,6 @@
 theory GammaSetAsEndofunctor
   imports Main
-          pointedSet
+          PointedSet
           FinsetEquivalence
           ColimitFunctoriality
 begin

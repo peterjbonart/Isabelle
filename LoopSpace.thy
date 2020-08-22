@@ -1,8 +1,8 @@
-theory loopSpace
+theory LoopSpace
   imports Main
-          simplicialSet
+          SimplicialSet
           "Category3.FunctorCategory"
-          homotopy
+          Homotopy
 begin
 
 
@@ -223,6 +223,32 @@ next
       by auto
   qed
 qed
+
+
+lemma on_obj : "F.A.ide c \<Longrightarrow> map c = Some (P.Id' (S c))"
+proof-
+  interpret G : "functor" C P.pointed_set_comp map
+    using is_functor.
+  assume ide_c: "F.A.ide c"
+  have ide_eq: "F c = Some (P.Id' (P.Dom' (the (F c))))"
+    using F.preserves_ide [OF ide_c]
+    unfolding P.ide_char by simp
+  have "the (map c) = P.Id' (S c)"
+    apply (rule_tac P.fun_eq_char)
+    using G.preserves_ide [OF ide_c] P.ide_char apply blast
+    using classical_category.Arr_Id [OF P.ccpf S_obj [OF ide_c]] apply simp
+    unfolding P.Id'_def map_def P.MkArr_def
+      apply (simp_all add: ide_c)
+    apply (subst ide_eq)
+    unfolding P.Id'_def apply simp
+    using S_subseteq [OF ide_c]
+    unfolding pointed_subset_def
+    by auto
+  then show "map c = Some (P.Id' (S c))"
+    by (metis G.preserves_ide ide_c option.sel pointed_set.ide_char)
+qed
+
+
 
 end
 
@@ -1387,6 +1413,36 @@ interpretation \<Omega> : curried_functor sSet.comp Delta.comp P.pointed_set_com
   by (simp add: sSet.is_category Delta.is_category P.is_category)
 
 
+
+
+abbreviation \<Omega> where
+  "\<Omega> \<equiv> \<Omega>.map"
+
+lemma \<Omega>_functor : "functor sSet.comp sSet.comp \<Omega>"
+  using \<Omega>.is_functor.
+
+lemma \<Omega>_on_obj :
+  assumes "sSet.ide c" "sSet.A.ide k"
+  shows "sSet.Fun (\<Omega> c) k = Some (P.Id' (\<Omega>_obj (c, k)))"
+  apply (subst reverse_equality [OF \<Omega>_curried.on_obj])
+  unfolding eval.A_BxA.ide_char
+  using assms apply simp
+proof-
+  have "sSet.arr (\<Omega> c)"
+    apply (rule_tac functor.preserves_arr [OF \<Omega>.is_functor])
+    using assms by simp
+  then show "sSet.Fun (\<Omega> c) k = \<Omega>_curried.map (c, k)"
+    unfolding \<Omega>.map_simp [OF sSet.ideD(1) [OF assms(1)]]
+    using assms by simp
+qed
+
+
+
+
+
+
+
+
 fun \<Omega>_tothe :: "nat \<Rightarrow> (gamma, 'a P.parr option) sSet.arr
       \<Rightarrow> (gamma, 'a P.parr option) sSet.arr" where
   "\<Omega>_tothe 0 = sSet.map" |
@@ -1402,15 +1458,52 @@ lemma \<Omega>_tothe_functor : "functor sSet.comp sSet.comp (\<Omega>_tothe n)"
 
 
 
+end
 
 
+locale \<Omega>_obj_theorem =
+  X : pointed_simplicial_set X
+  for X :: "(nat \<times> nat list) option \<Rightarrow> (('a \<Rightarrow> 'a) \<times> ('a \<times> 'a set) \<times> 'a \<times> 'a set) option"
+begin
 
+interpretation Delta: simplex.
+interpretation sSet: functor_category Delta.comp P.pointed_set_comp
+  unfolding functor_category_def
+  by (simp add: Delta.is_category P.is_category)
 
+interpretation \<Omega>X : pointed_simplicial_set "(sSet.Fun (\<Omega> (sSet.mkIde X)))"
+proof-
+  have "sSet.ide (sSet.mkIde X)"
+    apply (rule_tac sSet.ide_mkIde)
+    using X.X.functor_axioms.
+  then have "sSet.ide (\<Omega> (sSet.mkIde X))"
+    using functor.preserves_ide [OF \<Omega>_functor]
+    by simp
+  then show "pointed_simplicial_set (sSet.Fun (\<Omega> (sSet.mkIde X)))"
+    unfolding pointed_simplicial_set_def
+    unfolding sSet.ide_char
+    by simp
+qed
 
+lemma \<Omega>_simplices : "\<Omega>X.simplices k = 
+     (fst (X.simplices (Suc k)),
+     {x \<in> snd (X.simplices (Suc k)).
+      fst (the (X (Delta.d (Suc k) 0))) x = fst (X.simplices k) \<and>
+      (\<forall>ns. length ns = Suc k \<longrightarrow> X.apply_d_list ns x = fst (X.simplices 0))})"
+  unfolding reverse_equality [OF X.\<Omega>_obj_def]
+  unfolding \<Omega>X.simplices_def
+  apply (subst \<Omega>_on_obj)
+    apply (rule_tac sSet.ide_mkIde)
+    apply (rule_tac X.X.functor_axioms)
+  using Delta.ide_Dn apply simp
+  apply (simp add: P.Id'_def)
+  unfolding \<Omega>_obj_def
+  apply (simp add: fin_set.Id'_def)
+  apply (subst sSet.Fun_mkArr)
+   apply simp_all
+  using X.X.functor_axioms by simp
 
-      
-
-                           
+  
 
 
 

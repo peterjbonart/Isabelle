@@ -1,10 +1,10 @@
-theory smashProduct
+theory SmashProduct
   imports Main
-         pointedSet
+         PointedSet
           "Category3.NaturalTransformation"
           "Category3.ProductCategory"
           ColimitFunctoriality
-          simplicialSet
+          SimplicialSet
 begin
 
 

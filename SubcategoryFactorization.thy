@@ -1,4 +1,4 @@
-theory subcategory_Factorization
+theory SubcategoryFactorization
   imports Main
          "Category3.Subcategory"
          "Category3.NaturalTransformation"

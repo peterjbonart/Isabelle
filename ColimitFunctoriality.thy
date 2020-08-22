@@ -1,6 +1,6 @@
 theory ColimitFunctoriality
   imports Main
-          pointedSet
+          PointedSet
          "Category3.FreeCategory"
 begin
 

@@ -2,14 +2,14 @@ theory AbelianGroups
   imports Main
          "HOL-Algebra.Group"
          "HOL-Algebra.Free_Abelian_Groups"
-         pointedSet
+         PointedSet
          "Category3.FunctorCategory"
          SomeCategoryTheory
          "Category3.Yoneda"
          "Category3.SetCategory"
-         pointedSet_Factorization
+         PointedSetFactorization
          H_Ab
-         simplicialSet
+         SimplicialSet
 begin
 
 

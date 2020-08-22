@@ -1,7 +1,7 @@
 theory H_Ab
   imports Main
          "HOL-Algebra.Group"
-         pointedSet
+         PointedSet
 begin
 
 

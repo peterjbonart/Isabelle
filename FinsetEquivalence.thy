@@ -3,8 +3,8 @@ theory FinsetEquivalence
          "Category3.ProductCategory"
          "Category3.EquivalenceOfCategories"
          Gamma
-         pointedSet
-         subcategory_Factorization
+         PointedSet
+         SubcategoryFactorization
 begin
 
 

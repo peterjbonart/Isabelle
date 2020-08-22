@@ -1,6 +1,6 @@
-theory pointedSet_Factorization
+theory PointedSetFactorization
   imports Main
-          pointedSet
+          PointedSet
           
 begin
 

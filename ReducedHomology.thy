@@ -1,7 +1,7 @@
 theory ReducedHomology
   imports Main
          AbelianGroupCoproduct
-         simplicialSet
+         SimplicialSet
 begin
 
 

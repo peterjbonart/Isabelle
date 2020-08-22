@@ -1,8 +1,8 @@
-theory homotopy
+theory Homotopy
   imports Main
-          simplicialSet
+          SimplicialSet
           "Category3.FunctorCategory"
-          smashProduct
+          SmashProduct
 begin
 
 lemma (in curried_functor')

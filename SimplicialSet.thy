@@ -1,7 +1,7 @@
-theory simplicialSet
+theory SimplicialSet
   imports Main
          Gamma
-         pointedSet
+         PointedSet
          "Category3.DualCategory"
          SomeCategoryTheory
 begin

@@ -10,18 +10,7 @@ session "CategoryAndHomology" = "Category3" +
 session "Master" = "CategoryAndHomology" +
   options [document = pdf, document_output = "output"]
   theories
-    Gamma
-    simplicialSet
-    pointedSet
-    SomeCategoryTheory
-    subcategory_Factorization
-    smashProduct
-    ColimitFunctoriality
-    FinsetEquivalence
-    GammaSetAsEndofunctor
-    loopSpace
-    homotopy
-    HomologySModule
+    ComparisonTheorem
   document_files
     "root.tex"
   
