@@ -8,37 +8,10 @@ theory AbelianGroups
          "Category3.Yoneda"
          "Category3.SetCategory"
          PointedSetFactorization
-         H_Ab
+         FiniteSum
          SimplicialSet
 begin
 
-
-
-lemma finite_induct' : 
-  assumes "finite x"
-  shows "P {} \<Longrightarrow> 
-        (\<And>A a. finite A \<Longrightarrow> P A \<Longrightarrow> a \<notin> A \<Longrightarrow> P (insert a A)) 
-         \<Longrightarrow> P x"
-  apply (rule_tac finite.induct [OF assms])
-   apply simp
-proof-
-  fix A a
-  assume "P A"
-  assume "finite A"
-  assume step: "(\<And>A a. finite A \<Longrightarrow> P A \<Longrightarrow> a \<notin> A \<Longrightarrow> P (insert a A))"
-  have "a \<in> A \<or> a \<notin> A" by auto
-  then show "P (insert a A)"
-  proof
-    assume "a \<in> A"
-    then have "insert a A = A" by auto
-    then show "P (insert a A)"
-      by (simp add: \<open>P A\<close>)
-  next
-    show "a \<notin> A \<Longrightarrow> P (insert a A)"
-      apply (rule_tac step)
-      using \<open>finite A\<close> \<open>P A\<close> by simp_all
-  qed
-qed
 
 
 
@@ -188,6 +161,11 @@ lemma is_category : "category comp"
 
 lemma is_classical_category : "classical_category Obj' Arr' Dom' Cod' Id' Comp'"
   using AbCC.classical_category_axioms.
+
+
+
+
+
 
 
 lemma fun_eqI:
@@ -360,6 +338,10 @@ proof-
     by simp
 qed
 
+
+definition MkArr :: "('a, 'b) monoid_scheme \<Rightarrow> ('a, 'b) monoid_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow>
+                    ('a, 'b) Ab_hom" where
+  "MkArr A B F \<equiv> Some (restrict F (carrier A), (A, B))"
 
 
 
@@ -592,7 +574,7 @@ section "Lawvere theory of abelian groups"
 term free_Abelian_group 
 
 definition is_Z_tothe_n :: "(nat \<Rightarrow>\<^sub>0 int) monoid \<Rightarrow> bool" where
-  "is_Z_tothe_n A = (\<exists> (n :: nat). free_Abelian_group {(i :: nat). i < n} = A)"
+  "is_Z_tothe_n A = (\<exists> S. finite S \<and> free_Abelian_group S = A)"
 
 interpretation LawvAb : classical_full_subcategory 
      Obj' Arr' Dom' Cod' Id' Comp' is_Z_tothe_n
@@ -602,6 +584,11 @@ interpretation LawvAb : classical_full_subcategory
   unfolding is_Z_tothe_n_def Obj'_def
   apply auto
   by (simp add: abelian_free_Abelian_group)
+
+lemma Lawv_is_classical_full_subcategory: 
+   "classical_full_subcategory 
+     Obj' Arr' Dom' Cod' Id' Comp' is_Z_tothe_n"
+using LawvAb.classical_full_subcategory_axioms.
 
 
 definition Lawv_comp where
@@ -900,6 +887,10 @@ interpretation AF : "functor" "(dual_category.comp (Ab.Lawv_comp))" pointed_set.
   using AbCC.induces_category apply simp
   using Hom_into_A_functor
   unfolding Ab.comp_def.
+
+lemma is_functor : "functor (dual_category.comp (Ab.Lawv_comp)) pointed_set.pointed_set_comp
+                    map"
+  using AF.functor_axioms.
 
 end
 

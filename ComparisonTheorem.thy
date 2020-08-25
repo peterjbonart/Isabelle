@@ -3,7 +3,7 @@ theory ComparisonTheorem
          "HOL-Algebra.Group"
          HomologySModule
          ReducedHomology
-         H_Ab
+         HFunctor
 begin
 
 
@@ -207,6 +207,45 @@ lemma Inr_functor : "functor pointed_set_comp pointed_set_comp Inr_functor"
 end
 
 
+locale SphereCoeffHomologyWithUniverseChange =
+  Coeff: "functor" pointed_fin_set.comp pointed_set.pointed_set_comp Coeff +
+  Y : pointed_simplicial_set Y
+  for Coeff :: "(nat \<times> nat list) option \<Rightarrow> ('a pointed_set.parr) option"
+  and Y :: "(nat \<times> nat list) option \<Rightarrow> ('b pointed_set.parr) option"
+begin
+interpretation P: pointed_set.
+
+term "P.embed_functor P.Just"
+
+interpretation SH : SphereCoeffHomology "(P.embed_functor P.Just) \<circ> P.Inr_functor \<circ> Coeff" 
+                                        "(P.embed_functor P.Just) \<circ> P.Inl_functor \<circ> Y"
+  unfolding SphereCoeffHomology_def
+  apply auto
+   apply (rule_tac functor_comp)
+    apply (rule_tac Coeff.functor_axioms)
+   apply (rule_tac functor_comp)
+    apply (rule_tac P.Inr_functor)
+   apply (rule_tac P.embed_functor)
+   apply simp
+  unfolding pointed_simplicial_set_def
+  apply (rule_tac functor_comp)
+  using Y.pointed_simplicial_set_axioms
+  unfolding pointed_simplicial_set_def apply simp
+  apply (rule_tac functor_comp)
+   apply (rule_tac P.Inl_functor)
+  apply (rule_tac P.embed_functor)
+  by simp
+
+definition Homology where
+  "Homology = SH.Homology"
+
+lemma Homology_functor : "functor (subcategory.comp fin_set.comp pointed_fin_set.PointedArr') 
+                          pointed_set.pointed_set_comp (Homology n)"
+  unfolding Homology_def
+  using SH.Homology_functor.
+
+
+end
 
 
 
@@ -227,8 +266,9 @@ interpretation FunCat : functor_category pointed_fin_set.comp P.pointed_set_comp
 
 
 
-interpretation SH : SphereCoeffHomology "GroupToGammaset.HFunctor A" Y
-  unfolding SphereCoeffHomology_def
+interpretation SH : SphereCoeffHomologyWithUniverseChange
+  "GroupToGammaset.HFunctor A" Y
+  unfolding SphereCoeffHomologyWithUniverseChange_def
   apply (simp add: Y.pointed_simplicial_set_axioms)
   apply (rule_tac GroupToGammaset.is_functor)
   unfolding GroupToGammaset_def

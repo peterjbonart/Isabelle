@@ -59,35 +59,6 @@ proof-
 qed
 
 
-(*
-lemma finset_sum_inv : 
-  assumes "g \<in> A \<rightarrow> carrier G" "finite A"
-  shows "finset_sum A (\<lambda>x. inv g x) = inv finset_sum A g"
-proof-
-  have carrier1 : "finset_sum A (\<lambda>x. inv g x) \<in> carrier G"
-    apply (rule_tac finset_sum_carrier)
-    using assms by auto
-  have carrier2 : "finset_sum A g \<in> carrier G"
-    apply (rule_tac finset_sum_carrier)
-    using assms by auto
-  have "finset_sum A (\<lambda>x. inv g x) \<otimes> finset_sum A g = \<one>"
-    apply (subst reverse_equality [OF finset_sum_binary_sum])
-    using assms apply auto
-    apply (rule_tac zero_finset_sum)
-     apply auto
-  proof-
-    fix x
-    assume "x \<in> A"
-    then have "g x \<in> carrier G"
-      using assms by auto
-    then show "inv g x \<otimes> g x = \<one>"
-      by simp
-  qed
-  then show "finset_sum A (\<lambda>x. inv g x) = inv finset_sum A g"
-    using carrier1 carrier2
-    using local.inv_equality by auto
-qed
-*)
 
 
 

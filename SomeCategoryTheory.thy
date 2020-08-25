@@ -723,7 +723,9 @@ lemma inclusion_functor_simp :
   unfolding Inclusion.map_def
   unfolding CC.null_char SCC.arr_char
   by simp
-  
+
+
+
 end
 
 sublocale classical_full_subcategory \<subseteq> classical_category SObj SArr Dom Cod Ide Comp
