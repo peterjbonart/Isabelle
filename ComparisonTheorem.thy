@@ -215,8 +215,6 @@ locale SphereCoeffHomologyWithUniverseChange =
 begin
 interpretation P: pointed_set.
 
-term "P.embed_functor P.Just"
-
 interpretation SH : SphereCoeffHomology "(P.embed_functor P.Just) \<circ> P.Inr_functor \<circ> Coeff" 
                                         "(P.embed_functor P.Just) \<circ> P.Inl_functor \<circ> Y"
   unfolding SphereCoeffHomology_def
@@ -267,11 +265,11 @@ interpretation FunCat : functor_category pointed_fin_set.comp P.pointed_set_comp
 
 
 interpretation SH : SphereCoeffHomologyWithUniverseChange
-  "GroupToGammaset.HFunctor A" Y
+  "group_to_gammaset.HFunctor A" Y
   unfolding SphereCoeffHomologyWithUniverseChange_def
   apply (simp add: Y.pointed_simplicial_set_axioms)
-  apply (rule_tac GroupToGammaset.is_functor)
-  unfolding GroupToGammaset_def
+  apply (rule_tac group_to_gammaset.is_functor)
+  unfolding group_to_gammaset_def
   using A.comm_group_axioms.
 
 interpretation RH : Reduced_Homology Y A
@@ -285,15 +283,15 @@ theorem "functor pointed_fin_set.comp P.pointed_set_comp
   using SH.Homology_functor.
 
 theorem "functor pointed_fin_set.comp P.pointed_set_comp
-       (GroupToGammaset.HFunctor (RH.homology_group n))"
-  apply (rule_tac GroupToGammaset.is_functor)
-  unfolding GroupToGammaset_def
+       (group_to_gammaset.HFunctor (RH.homology_group n))"
+  apply (rule_tac group_to_gammaset.is_functor)
+  unfolding group_to_gammaset_def
   using RH.is_comm_group.
 
 theorem comparison :
    "FunCat.isomorphic
    (FunCat.mkIde (P.Inr_functor \<circ> SH.Homology n))
-   (FunCat.mkIde (P.Inl_functor \<circ> GroupToGammaset.HFunctor (RH.homology_group n)))"
+   (FunCat.mkIde (P.Inl_functor \<circ> group_to_gammaset.HFunctor (RH.homology_group n)))"
   oops
 end
 

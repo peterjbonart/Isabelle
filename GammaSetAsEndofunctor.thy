@@ -352,10 +352,10 @@ proof-
 qed
 
 
-definition finite_subset_image_functor :: "'a parr \<Rightarrow> 
+definition subset_image_functor :: "'a parr \<Rightarrow> 
                  (('a pointed_set) \<times> ('a pointed_set)) option \<Rightarrow> 
                  (('a pointed_set) \<times> ('a pointed_set)) option "  where
-  "finite_subset_image_functor f = MkFunctor 
+  "subset_image_functor f = MkFunctor 
                      (finiteSubsetCat.comp (Dom' f))
                      (finiteSubsetCat.comp (Cod' f))
                      (\<lambda>t. Some ( pointed_image (fst f) (fst (the t))  , 
@@ -388,10 +388,10 @@ proof-
 qed
 
 
-lemma finite_subset_image_functor_arr:
+lemma subset_image_functor_arr:
   assumes "Arr' F"
   and arr_f : "partial_magma.arr (finiteSubsetCat.comp (fst (snd F))) f"
-  shows "partial_magma.arr (finiteSubsetCat.comp (snd (snd F))) (finite_subset_image_functor F f)"
+  shows "partial_magma.arr (finiteSubsetCat.comp (snd (snd F))) (subset_image_functor F f)"
 
 proof-
   have "fst (the f) = (fst (fst (the f)), snd (fst (the f)))"
@@ -413,9 +413,9 @@ proof-
     unfolding pointed_finset_triangle_def by simp
 
 
-  show arr_Ff: "partial_magma.arr (finiteSubsetCat.comp (snd (snd F))) (finite_subset_image_functor F f)"
+  show arr_Ff: "partial_magma.arr (finiteSubsetCat.comp (snd (snd F))) (subset_image_functor F f)"
     unfolding finiteSubsetCat.arr_char
-              finite_subset_image_functor_def 
+              subset_image_functor_def 
     using arr_f
     unfolding finiteSubsetCat.comp_def
     apply simp
@@ -432,21 +432,21 @@ proof-
 qed
 
 
-lemma finite_subset_image_functor_id : 
+lemma subset_image_functor_id : 
   assumes "Arr' F"
    and arr_f : "partial_magma.arr (finiteSubsetCat.comp (fst (snd F))) f"
    and  "pointed_finset (fst (snd F)) A"
  shows      "Some (finiteSubsetCat.XId (pointed_image (fst F) A)) =
-          finite_subset_image_functor F (Some (finiteSubsetCat.XId (A)))"
+          subset_image_functor F (Some (finiteSubsetCat.XId (A)))"
   using XId_arr [OF \<open>pointed_finset (fst (snd F)) A\<close>]
-  unfolding finiteSubsetCat.XId_def finite_subset_image_functor_def 
-  by (simp add: arr_f finite_subset_image_functor_arr [OF \<open>Arr' F\<close> arr_f])
+  unfolding finiteSubsetCat.XId_def subset_image_functor_def 
+  by (simp add: arr_f subset_image_functor_arr [OF \<open>Arr' F\<close> arr_f])
 
-lemma finite_subset_image_functor_dom:
+lemma subset_image_functor_dom:
   assumes "Arr' F"
   and arr_f : "partial_magma.arr (finiteSubsetCat.comp (fst (snd F))) f"
-  shows "partial_magma.dom (finiteSubsetCat.comp (snd (snd F))) (finite_subset_image_functor F f) =
-         finite_subset_image_functor F (partial_magma.dom (finiteSubsetCat.comp (fst (snd F))) f)"
+  shows "partial_magma.dom (finiteSubsetCat.comp (snd (snd F))) (subset_image_functor F f) =
+         subset_image_functor F (partial_magma.dom (finiteSubsetCat.comp (fst (snd F))) f)"
 proof-
   have arr_dom : "partial_magma.arr (finiteSubsetCat.comp (fst (snd F))) (Some (fst (the f), fst (the f)))" 
     unfolding finiteSubsetCat.arr_char
@@ -460,22 +460,22 @@ proof-
               pointed_finset_triangle_def
     by simp
 
-  show "partial_magma.dom (finiteSubsetCat.comp (snd (snd F))) (finite_subset_image_functor F f) =
-         finite_subset_image_functor F (partial_magma.dom (finiteSubsetCat.comp (fst (snd F))) f)" 
-    using arr_f finite_subset_image_functor_arr [OF \<open>Arr' F\<close> arr_f]
+  show "partial_magma.dom (finiteSubsetCat.comp (snd (snd F))) (subset_image_functor F f) =
+         subset_image_functor F (partial_magma.dom (finiteSubsetCat.comp (fst (snd F))) f)" 
+    using arr_f subset_image_functor_arr [OF \<open>Arr' F\<close> arr_f]
     unfolding finiteSubsetCat.dom_char apply simp
   proof-
-    show "Some (finiteSubsetCat.XId (fst (the (finite_subset_image_functor F f)))) =
-          finite_subset_image_functor F (Some (finiteSubsetCat.XId (fst (the f))))"
-      unfolding finiteSubsetCat.XId_def finite_subset_image_functor_def 
-      by (simp add: arr_f finite_subset_image_functor_arr [OF \<open>Arr' F\<close> arr_f] arr_dom)
+    show "Some (finiteSubsetCat.XId (fst (the (subset_image_functor F f)))) =
+          subset_image_functor F (Some (finiteSubsetCat.XId (fst (the f))))"
+      unfolding finiteSubsetCat.XId_def subset_image_functor_def 
+      by (simp add: arr_f subset_image_functor_arr [OF \<open>Arr' F\<close> arr_f] arr_dom)
   qed
 qed
-lemma finite_subset_image_functor_cod:
+lemma subset_image_functor_cod:
   assumes "Arr' F"
   and arr_f : "partial_magma.arr (finiteSubsetCat.comp (fst (snd F))) f"
-  shows "partial_magma.cod (finiteSubsetCat.comp (snd (snd F))) (finite_subset_image_functor F f) =
-         finite_subset_image_functor F (partial_magma.cod (finiteSubsetCat.comp (fst (snd F))) f)"
+  shows "partial_magma.cod (finiteSubsetCat.comp (snd (snd F))) (subset_image_functor F f) =
+         subset_image_functor F (partial_magma.cod (finiteSubsetCat.comp (fst (snd F))) f)"
 proof-
   have arr_cod : "partial_magma.arr (finiteSubsetCat.comp (fst (snd F))) (Some (snd (the f), snd (the f)))" 
     unfolding finiteSubsetCat.arr_char
@@ -488,23 +488,23 @@ proof-
               pointed_finset_triangle_def
     by simp
 
-  show "partial_magma.cod (finiteSubsetCat.comp (snd (snd F))) (finite_subset_image_functor F f) =
-         finite_subset_image_functor F (partial_magma.cod (finiteSubsetCat.comp (fst (snd F))) f)" 
-    using arr_f finite_subset_image_functor_arr [OF \<open>Arr' F\<close> arr_f]
+  show "partial_magma.cod (finiteSubsetCat.comp (snd (snd F))) (subset_image_functor F f) =
+         subset_image_functor F (partial_magma.cod (finiteSubsetCat.comp (fst (snd F))) f)" 
+    using arr_f subset_image_functor_arr [OF \<open>Arr' F\<close> arr_f]
     unfolding finiteSubsetCat.cod_char apply simp
   proof-
-    show "Some (finiteSubsetCat.XId (snd (the (finite_subset_image_functor F f)))) =
-          finite_subset_image_functor F (Some (finiteSubsetCat.XId (snd (the f))))"
-      unfolding finiteSubsetCat.XId_def finite_subset_image_functor_def 
-      by (simp add: arr_f finite_subset_image_functor_arr [OF \<open>Arr' F\<close> arr_f] arr_cod)
+    show "Some (finiteSubsetCat.XId (snd (the (subset_image_functor F f)))) =
+          subset_image_functor F (Some (finiteSubsetCat.XId (snd (the f))))"
+      unfolding finiteSubsetCat.XId_def subset_image_functor_def 
+      by (simp add: arr_f subset_image_functor_arr [OF \<open>Arr' F\<close> arr_f] arr_cod)
   qed
 qed
 
-lemma finite_subset_image_functor : 
+lemma subset_image_functor : 
   assumes "Arr' F" 
   shows  "functor (finiteSubsetCat.comp (Dom' F))
                      (finiteSubsetCat.comp (Cod' F))
-                  (finite_subset_image_functor F)"
+                  (subset_image_functor F)"
   unfolding functor_def
   apply (simp add: finiteSubsetCat.is_category)
   unfolding functor_axioms_def
@@ -512,17 +512,17 @@ lemma finite_subset_image_functor :
 proof-
   fix f
   show "\<not> partial_magma.arr (finiteSubsetCat.comp (fst (snd F))) f \<Longrightarrow>
-          finite_subset_image_functor F f = partial_magma.null (finiteSubsetCat.comp (snd (snd F)))"
-    unfolding finite_subset_image_functor_def by simp
+          subset_image_functor F f = partial_magma.null (finiteSubsetCat.comp (snd (snd F)))"
+    unfolding subset_image_functor_def by simp
   assume arr_f : "partial_magma.arr (finiteSubsetCat.comp (fst (snd F))) f"
-  show "partial_magma.arr (finiteSubsetCat.comp (snd (snd F))) (finite_subset_image_functor F f)"
-    using finite_subset_image_functor_arr [OF \<open>Arr' F\<close> arr_f].
-  show "partial_magma.dom (finiteSubsetCat.comp (snd (snd F))) (finite_subset_image_functor F f) =
-         finite_subset_image_functor F (partial_magma.dom (finiteSubsetCat.comp (fst (snd F))) f)"
-    using finite_subset_image_functor_dom [OF \<open>Arr' F\<close> arr_f].
-  show "partial_magma.cod (finiteSubsetCat.comp (snd (snd F))) (finite_subset_image_functor F f) =
-         finite_subset_image_functor F (partial_magma.cod (finiteSubsetCat.comp (fst (snd F))) f)"
-    using finite_subset_image_functor_cod [OF \<open>Arr' F\<close> arr_f].
+  show "partial_magma.arr (finiteSubsetCat.comp (snd (snd F))) (subset_image_functor F f)"
+    using subset_image_functor_arr [OF \<open>Arr' F\<close> arr_f].
+  show "partial_magma.dom (finiteSubsetCat.comp (snd (snd F))) (subset_image_functor F f) =
+         subset_image_functor F (partial_magma.dom (finiteSubsetCat.comp (fst (snd F))) f)"
+    using subset_image_functor_dom [OF \<open>Arr' F\<close> arr_f].
+  show "partial_magma.cod (finiteSubsetCat.comp (snd (snd F))) (subset_image_functor F f) =
+         subset_image_functor F (partial_magma.cod (finiteSubsetCat.comp (fst (snd F))) f)"
+    using subset_image_functor_cod [OF \<open>Arr' F\<close> arr_f].
 next
   fix g f
   assume arr_gf: "partial_magma.arr (finiteSubsetCat.comp (fst (snd F))) (finiteSubsetCat.comp (fst (snd F)) g f)"
@@ -545,22 +545,22 @@ next
     by auto
   then have "snd (the f) = fst (the g)" by simp
 
-  have Fgf_prop: "partial_magma.arr (finiteSubsetCat.comp (snd (snd F))) (finite_subset_image_functor F f) \<and>
-   partial_magma.arr (finiteSubsetCat.comp (snd (snd F))) (finite_subset_image_functor F g) \<and>
-   partial_magma.dom (finiteSubsetCat.comp (snd (snd F))) (finite_subset_image_functor F g) =
-   partial_magma.cod (finiteSubsetCat.comp (snd (snd F))) (finite_subset_image_functor F f)" 
-    using finite_subset_image_functor_arr [OF \<open>Arr' F\<close>] gf_prop apply simp
-    apply (subst finite_subset_image_functor_dom [OF \<open>Arr' F\<close>])
+  have Fgf_prop: "partial_magma.arr (finiteSubsetCat.comp (snd (snd F))) (subset_image_functor F f) \<and>
+   partial_magma.arr (finiteSubsetCat.comp (snd (snd F))) (subset_image_functor F g) \<and>
+   partial_magma.dom (finiteSubsetCat.comp (snd (snd F))) (subset_image_functor F g) =
+   partial_magma.cod (finiteSubsetCat.comp (snd (snd F))) (subset_image_functor F f)" 
+    using subset_image_functor_arr [OF \<open>Arr' F\<close>] gf_prop apply simp
+    apply (subst subset_image_functor_dom [OF \<open>Arr' F\<close>])
      apply simp
-    apply (subst finite_subset_image_functor_cod [OF \<open>Arr' F\<close>])
+    apply (subst subset_image_functor_cod [OF \<open>Arr' F\<close>])
      apply simp
     by simp
 
-  from Fgf_prop have comp_helper2: "finite_subset_image_functor F f \<noteq> None \<and>
-        finite_subset_image_functor F g \<noteq> None \<and>
-        finiteSubsetCat.XArr (snd (snd F)) (the (finite_subset_image_functor F f)) \<and>
-        finiteSubsetCat.XArr (snd (snd F)) (the (finite_subset_image_functor F g)) \<and>
-        snd (the (finite_subset_image_functor F f)) = fst (the (finite_subset_image_functor F g))"
+  from Fgf_prop have comp_helper2: "subset_image_functor F f \<noteq> None \<and>
+        subset_image_functor F g \<noteq> None \<and>
+        finiteSubsetCat.XArr (snd (snd F)) (the (subset_image_functor F f)) \<and>
+        finiteSubsetCat.XArr (snd (snd F)) (the (subset_image_functor F g)) \<and>
+        snd (the (subset_image_functor F f)) = fst (the (subset_image_functor F g))"
     unfolding finiteSubsetCat.comp_def
               classical_category.arr_char [OF finiteSubsetCat.is_classical_category]
               classical_category.dom_char [OF finiteSubsetCat.is_classical_category]
@@ -576,41 +576,41 @@ next
               \<open>snd (the f) = fst (the g)\<close>
     by auto
 
-  show "finite_subset_image_functor F (finiteSubsetCat.comp (fst (snd F)) g f) =
-           finiteSubsetCat.comp (snd (snd F)) (finite_subset_image_functor F g) (finite_subset_image_functor F f)"
+  show "subset_image_functor F (finiteSubsetCat.comp (fst (snd F)) g f) =
+           finiteSubsetCat.comp (snd (snd F)) (subset_image_functor F g) (subset_image_functor F f)"
     unfolding finiteSubsetCat.comp_char
               finiteSubsetCat.XComp_def
     apply (simp add: comp_helper1 comp_helper2)
   proof-
-    show "finite_subset_image_functor F (Some (fst (the f), snd (the g))) =
-    Some (fst (the (finite_subset_image_functor F f)), snd (the (finite_subset_image_functor F g)))"
-      unfolding finite_subset_image_functor_def by (simp add: gf_prop arr_comp)
+    show "subset_image_functor F (Some (fst (the f), snd (the g))) =
+    Some (fst (the (subset_image_functor F f)), snd (the (subset_image_functor F g)))"
+      unfolding subset_image_functor_def by (simp add: gf_prop arr_comp)
   qed
 qed
 
 
 section "Natural transformation between image functors"
 
-definition finite_subset_image_nattrafo :: "'a parr
+definition subset_image_nattrafo :: "'a parr
     \<Rightarrow> (('a pointed_set) \<times> ('a pointed_set)) option \<Rightarrow> 'a parr option" where
-  "finite_subset_image_nattrafo f = MkFunctor (finiteSubsetCat.comp (Dom' f)) pointed_set_comp
+  "subset_image_nattrafo f = MkFunctor (finiteSubsetCat.comp (Dom' f)) pointed_set_comp
                     (\<lambda>t. Some ( MkArr (fst (the t)) (pointed_image (fst f) (snd (the t))) (\<lambda>x. fst f x)))"
 
 
-lemma finite_subset_image_nattrafo_arr:
+lemma subset_image_nattrafo_arr:
   assumes "Arr' F" 
   and arr_f : "partial_magma.arr (finiteSubsetCat.comp (fst (snd F))) f"
-  shows "partial_magma.arr pointed_set_comp (finite_subset_image_nattrafo F f)"
+  shows "partial_magma.arr pointed_set_comp (subset_image_nattrafo F f)"
   unfolding arr_char
-  apply (subst finite_subset_image_nattrafo_def)
+  apply (subst subset_image_nattrafo_def)
   apply (simp add: arr_f)
   unfolding Arr'_def
   apply safe
 proof-
   have f_conv: "snd (the f) = (fst (snd (the f)), snd (snd (the f)))" by simp
 
-  show "setcat.Arr (forget (the (finite_subset_image_nattrafo F f)))"
-    unfolding setcat.Arr_def finite_subset_image_nattrafo_def MkArr_def
+  show "setcat.Arr (forget (the (subset_image_nattrafo F f)))"
+    unfolding setcat.Arr_def subset_image_nattrafo_def MkArr_def
     using arr_f apply auto
   proof-
     fix x
@@ -635,11 +635,11 @@ proof-
               pointed_finset_triangle_def
               pointed_finset_def
     by simp
-  show "Obj' (fst (snd (the (finite_subset_image_nattrafo F f))))"
-    unfolding finite_subset_image_nattrafo_def MkArr_def apply (simp add: arr_f)
+  show "Obj' (fst (snd (the (subset_image_nattrafo F f))))"
+    unfolding subset_image_nattrafo_def MkArr_def apply (simp add: arr_f)
     using \<open>Obj' (fst (the f))\<close>.
-  show "Obj' (snd (snd (the (finite_subset_image_nattrafo F f))))"
-    unfolding finite_subset_image_nattrafo_def MkArr_def apply (simp add: arr_f)
+  show "Obj' (snd (snd (the (subset_image_nattrafo F f))))"
+    unfolding subset_image_nattrafo_def MkArr_def apply (simp add: arr_f)
     apply (rule_tac pointed_image_obj)
     using arr_f
     unfolding finiteSubsetCat.arr_char
@@ -648,11 +648,11 @@ proof-
               pointed_finset_def
     by simp
   have "(snd (the f)) = (fst (snd (the f)), snd (snd (the f)))" by simp
-  show "fst (the (finite_subset_image_nattrafo F f))
-     (fst (fst (snd (the (finite_subset_image_nattrafo F f))))) =
-    fst (snd (snd (the (finite_subset_image_nattrafo F f))))"
+  show "fst (the (subset_image_nattrafo F f))
+     (fst (fst (snd (the (subset_image_nattrafo F f))))) =
+    fst (snd (snd (the (subset_image_nattrafo F f))))"
     using \<open>Obj' (fst (the f))\<close>
-    unfolding finite_subset_image_nattrafo_def 
+    unfolding subset_image_nattrafo_def 
               MkArr_def Obj'_def apply (simp add: arr_f)
     apply (subst \<open>(snd (the f)) = (fst (snd (the f)), snd (snd (the f)))\<close>)
     unfolding pointed_image.simps apply simp
@@ -664,10 +664,10 @@ proof-
     by simp
 qed
 
-lemma finite_subset_image_nattrafo_dom :
+lemma subset_image_nattrafo_dom :
   assumes "Arr' F"
    and arr_f: "partial_magma.arr (finiteSubsetCat.comp (fst (snd F))) f"
-  shows "partial_magma.dom pointed_set_comp (finite_subset_image_nattrafo F f) =
+  shows "partial_magma.dom pointed_set_comp (subset_image_nattrafo F f) =
          finite_subset_inclusion_functor (fst (snd F))
           (partial_magma.dom (finiteSubsetCat.comp (fst (snd F))) f)"
 proof-
@@ -675,14 +675,14 @@ proof-
     unfolding finiteSubsetCat.arr_char
               finiteSubsetCat.XArr_def
     by simp
-  have dom_eq: "Dom' (the (finite_subset_image_nattrafo F f)) = fst (the f)"
-    unfolding finite_subset_image_nattrafo_def MkArr_def by (simp add: arr_f)
+  have dom_eq: "Dom' (the (subset_image_nattrafo F f)) = fst (the f)"
+    unfolding subset_image_nattrafo_def MkArr_def by (simp add: arr_f)
 
-show "partial_magma.dom pointed_set_comp (finite_subset_image_nattrafo F f) =
+show "partial_magma.dom pointed_set_comp (subset_image_nattrafo F f) =
          finite_subset_inclusion_functor (fst (snd F))
           (partial_magma.dom (finiteSubsetCat.comp (fst (snd F))) f)"
     using dom_char
-    apply (subst dom_char [OF finite_subset_image_nattrafo_arr [OF \<open>Arr' F\<close> arr_f]])
+    apply (subst dom_char [OF subset_image_nattrafo_arr [OF \<open>Arr' F\<close> arr_f]])
     unfolding finiteSubsetCat.dom_char
     apply (simp add: arr_f)
     apply (subst reverse_equality [OF finite_subset_inclusion_functor_id])
@@ -691,27 +691,27 @@ show "partial_magma.dom pointed_set_comp (finite_subset_image_nattrafo F f) =
     using dom_eq by simp
 qed
 
-lemma finite_subset_image_nattrafo_cod :
+lemma subset_image_nattrafo_cod :
   assumes "Arr' F"
    and arr_f: "partial_magma.arr (finiteSubsetCat.comp (fst (snd F))) f"
- shows "partial_magma.cod pointed_set_comp (finite_subset_image_nattrafo F f) =
-         (finite_subset_inclusion_functor (snd (snd F)) \<circ> finite_subset_image_functor F)
+ shows "partial_magma.cod pointed_set_comp (subset_image_nattrafo F f) =
+         (finite_subset_inclusion_functor (snd (snd F)) \<circ> subset_image_functor F)
           (partial_magma.cod (finiteSubsetCat.comp (fst (snd F))) f)"
 proof-
   from arr_f have pft: "pointed_finset_triangle (fst (snd F)) (fst (the f)) (snd (the f))"
     unfolding finiteSubsetCat.arr_char
               finiteSubsetCat.XArr_def
     by simp
-  have cod_eq: "Cod' (the (finite_subset_image_nattrafo F f)) = pointed_image (fst F) (snd (the f))"
-    unfolding finite_subset_image_nattrafo_def MkArr_def by (simp add: arr_f)
+  have cod_eq: "Cod' (the (subset_image_nattrafo F f)) = pointed_image (fst F) (snd (the f))"
+    unfolding subset_image_nattrafo_def MkArr_def by (simp add: arr_f)
 
-  show "partial_magma.cod pointed_set_comp (finite_subset_image_nattrafo F f) =
-         (finite_subset_inclusion_functor (snd (snd F)) \<circ> finite_subset_image_functor F)
+  show "partial_magma.cod pointed_set_comp (subset_image_nattrafo F f) =
+         (finite_subset_inclusion_functor (snd (snd F)) \<circ> subset_image_functor F)
           (partial_magma.cod (finiteSubsetCat.comp (fst (snd F))) f)"
-    apply (subst cod_char [OF finite_subset_image_nattrafo_arr [OF \<open>Arr' F\<close> arr_f]])
+    apply (subst cod_char [OF subset_image_nattrafo_arr [OF \<open>Arr' F\<close> arr_f]])
     unfolding finiteSubsetCat.cod_char
     apply (simp add: arr_f)
-    apply (subst reverse_equality [OF finite_subset_image_functor_id 
+    apply (subst reverse_equality [OF subset_image_functor_id 
                                   [OF \<open>Arr' F\<close> arr_f]])
     using pft
     unfolding pointed_finset_triangle_def apply simp
@@ -724,43 +724,43 @@ proof-
 qed
 
 
-lemma finite_subset_image_nattrafo_all_pointedsets:
+lemma subset_image_nattrafo_all_pointedsets:
   assumes "Arr' F"
   shows "natural_transformation (finiteSubsetCat.comp (Dom' F)) pointed_set_comp
        (finite_subset_inclusion_functor (Dom' F))
        ((finite_subset_inclusion_functor (Cod' F)) \<circ>
-       (finite_subset_image_functor F))
-       (finite_subset_image_nattrafo F)"
+       (subset_image_functor F))
+       (subset_image_nattrafo F)"
   unfolding natural_transformation_def
   apply (simp add: finiteSubsetCat.is_category 
                    is_category
                    finite_subset_inclusion_functor_all_pointedsets)
   apply safe
    apply (rule_tac functor_comp)
-  using finite_subset_image_functor [OF \<open>Arr' F\<close>] apply simp
+  using subset_image_functor [OF \<open>Arr' F\<close>] apply simp
   using finite_subset_inclusion_functor_all_pointedsets apply blast
   unfolding natural_transformation_axioms_def
   apply safe
 proof-
   fix f
   show "\<not> partial_magma.arr (finiteSubsetCat.comp (fst (snd F))) f \<Longrightarrow>
-         finite_subset_image_nattrafo F f = partial_magma.null pointed_set_comp"
-    unfolding finite_subset_image_nattrafo_def by simp
+         subset_image_nattrafo F f = partial_magma.null pointed_set_comp"
+    unfolding subset_image_nattrafo_def by simp
   assume arr_f: "partial_magma.arr (finiteSubsetCat.comp (fst (snd F))) f"
   then have pft: "pointed_finset_triangle (fst (snd F)) (fst (the f)) (snd (the f))"
     unfolding finiteSubsetCat.arr_char
               finiteSubsetCat.XArr_def
     by simp
 
-  show "partial_magma.dom pointed_set_comp (finite_subset_image_nattrafo F f) =
+  show "partial_magma.dom pointed_set_comp (subset_image_nattrafo F f) =
          finite_subset_inclusion_functor (fst (snd F))
           (partial_magma.dom (finiteSubsetCat.comp (fst (snd F))) f)"
-    using finite_subset_image_nattrafo_dom [OF \<open>Arr' F\<close> arr_f].
+    using subset_image_nattrafo_dom [OF \<open>Arr' F\<close> arr_f].
 
-  show "partial_magma.cod pointed_set_comp (finite_subset_image_nattrafo F f) =
-         (finite_subset_inclusion_functor (snd (snd F)) \<circ> finite_subset_image_functor F)
+  show "partial_magma.cod pointed_set_comp (subset_image_nattrafo F f) =
+         (finite_subset_inclusion_functor (snd (snd F)) \<circ> subset_image_functor F)
           (partial_magma.cod (finiteSubsetCat.comp (fst (snd F))) f)"
-    using finite_subset_image_nattrafo_cod [OF \<open>Arr' F\<close> arr_f].
+    using subset_image_nattrafo_cod [OF \<open>Arr' F\<close> arr_f].
 
   have arr_id1: "partial_magma.arr (finiteSubsetCat.comp (fst (snd F)))
           (Some (finiteSubsetCat.XId (fst (the f))))"
@@ -774,99 +774,99 @@ proof-
     unfolding pointed_finset_triangle_def
     by simp
 
-  have arr_Ff: "partial_magma.arr (finiteSubsetCat.comp (snd (snd F))) (finite_subset_image_functor F f)"
-    using finite_subset_image_functor_arr [OF \<open>Arr' F\<close> arr_f].
+  have arr_Ff: "partial_magma.arr (finiteSubsetCat.comp (snd (snd F))) (subset_image_functor F f)"
+    using subset_image_functor_arr [OF \<open>Arr' F\<close> arr_f].
 
 
-  have eq1: "fst (the (finite_subset_image_functor F f)) = 
+  have eq1: "fst (the (subset_image_functor F f)) = 
             pointed_image (fst F) (snd (finiteSubsetCat.XId (fst (the f))))"
     unfolding finiteSubsetCat.XId_def apply simp
-    unfolding finite_subset_image_functor_def by (simp add: arr_f)
+    unfolding subset_image_functor_def by (simp add: arr_f)
 
 
   show "pointed_set_comp
-          ((finite_subset_inclusion_functor (snd (snd F)) \<circ> finite_subset_image_functor F) f)
-          (finite_subset_image_nattrafo F
+          ((finite_subset_inclusion_functor (snd (snd F)) \<circ> subset_image_functor F) f)
+          (subset_image_nattrafo F
             (partial_magma.dom (finiteSubsetCat.comp (fst (snd F))) f)) =
-         finite_subset_image_nattrafo F f"
+         subset_image_nattrafo F f"
     unfolding finiteSubsetCat.dom_char
     apply (simp add: arr_f)
     apply (subst comp_char)
-       apply (rule_tac finite_subset_image_nattrafo_arr [OF \<open>Arr' F\<close>])
+       apply (rule_tac subset_image_nattrafo_arr [OF \<open>Arr' F\<close>])
        apply (subst finiteSubsetCat.arr_char)
     apply simp
        apply (rule_tac classical_category.Arr_Id [OF finiteSubsetCat.is_classical_category])
     unfolding finiteSubsetCat.XObj_def
     using pft unfolding pointed_finset_triangle_def apply simp
       apply (rule_tac finite_subset_inclusion_functor_arr)
-      apply (rule_tac finite_subset_image_functor_arr [OF \<open>Arr' F\<close> arr_f])
+      apply (rule_tac subset_image_functor_arr [OF \<open>Arr' F\<close> arr_f])
     unfolding finite_subset_inclusion_functor_dom [OF arr_Ff]
-              finite_subset_image_functor_dom [OF \<open>Arr' F\<close> arr_f]
+              subset_image_functor_dom [OF \<open>Arr' F\<close> arr_f]
               finiteSubsetCat.dom_char
-              finite_subset_image_nattrafo_cod [OF \<open>Arr' F\<close> arr_id1]
+              subset_image_nattrafo_cod [OF \<open>Arr' F\<close> arr_id1]
               finiteSubsetCat.cod_char
      apply (simp add: arr_Ff arr_id1)
-     apply (subst reverse_equality [OF finite_subset_image_functor_id [OF \<open>Arr' F\<close> arr_f pf_id]])
+     apply (subst reverse_equality [OF subset_image_functor_id [OF \<open>Arr' F\<close> arr_f pf_id]])
     using eq1 apply simp
   proof-
-    have EQ: "the (finite_subset_inclusion_functor (snd (snd F)) (finite_subset_image_functor F f)) \<cdot>
-      the (finite_subset_image_nattrafo F (Some (finiteSubsetCat.XId (fst (the f))))) =
-      the (finite_subset_image_nattrafo F f)"
+    have EQ: "the (finite_subset_inclusion_functor (snd (snd F)) (subset_image_functor F f)) \<cdot>
+      the (subset_image_nattrafo F (Some (finiteSubsetCat.XId (fst (the f))))) =
+      the (subset_image_nattrafo F f)"
       apply (rule_tac comp_eq_char)
       using finite_subset_inclusion_functor_arr [OF arr_Ff]
       unfolding arr_char apply simp
-      using finite_subset_image_nattrafo_arr [OF \<open>Arr' F\<close> arr_id1]
+      using subset_image_nattrafo_arr [OF \<open>Arr' F\<close> arr_id1]
       unfolding arr_char apply simp
-      using finite_subset_image_nattrafo_arr [OF \<open>Arr' F\<close> arr_f]
+      using subset_image_nattrafo_arr [OF \<open>Arr' F\<close> arr_f]
       unfolding arr_char apply simp
     proof-
-      show "fst (snd (the (finite_subset_image_nattrafo F (Some (finiteSubsetCat.XId (fst (the f))))))) =
-    fst (snd (the (finite_subset_image_nattrafo F f)))"
-        unfolding finite_subset_image_nattrafo_def MkArr_def apply (simp add: arr_f arr_id1)
+      show "fst (snd (the (subset_image_nattrafo F (Some (finiteSubsetCat.XId (fst (the f))))))) =
+    fst (snd (the (subset_image_nattrafo F f)))"
+        unfolding subset_image_nattrafo_def MkArr_def apply (simp add: arr_f arr_id1)
         unfolding finiteSubsetCat.XId_def by simp
       show "snd (snd (the (finite_subset_inclusion_functor (snd (snd F))
-                    (finite_subset_image_functor F f)))) =
-    snd (snd (the (finite_subset_image_nattrafo F f)))"
+                    (subset_image_functor F f)))) =
+    snd (snd (the (subset_image_nattrafo F f)))"
         unfolding finite_subset_inclusion_functor_def apply (simp add: arr_Ff)
-        unfolding finite_subset_image_nattrafo_def MkArr_def apply (simp add: arr_f)
+        unfolding subset_image_nattrafo_def MkArr_def apply (simp add: arr_f)
         unfolding inclusion_map_def MkArr_def apply simp
-        unfolding finite_subset_image_functor_def by (simp add: arr_f)
+        unfolding subset_image_functor_def by (simp add: arr_f)
       show "fst (snd (the (finite_subset_inclusion_functor (snd (snd F))
-                    (finite_subset_image_functor F f)))) =
-    snd (snd (the (finite_subset_image_nattrafo F (Some (finiteSubsetCat.XId (fst (the f)))))))"
+                    (subset_image_functor F f)))) =
+    snd (snd (the (subset_image_nattrafo F (Some (finiteSubsetCat.XId (fst (the f)))))))"
         unfolding finite_subset_inclusion_functor_def apply (simp add: arr_Ff)
-        unfolding finite_subset_image_nattrafo_def MkArr_def apply (simp add: arr_id1)
+        unfolding subset_image_nattrafo_def MkArr_def apply (simp add: arr_id1)
         unfolding inclusion_map_def MkArr_def apply simp
-        unfolding finite_subset_image_functor_def apply (simp add: arr_f)
+        unfolding subset_image_functor_def apply (simp add: arr_f)
         unfolding finiteSubsetCat.XId_def by simp
       fix x
-      assume "x \<in> snd (fst (snd (the (finite_subset_image_nattrafo F
+      assume "x \<in> snd (fst (snd (the (subset_image_nattrafo F
                                   (Some (finiteSubsetCat.XId (fst (the f))))))))"
       then have x_in_id_dom : "x \<in> snd (fst (finiteSubsetCat.XId (fst (the f))))"
-        unfolding finite_subset_image_nattrafo_def MkArr_def by (simp add: arr_id1)
+        unfolding subset_image_nattrafo_def MkArr_def by (simp add: arr_id1)
       then have x_in_f_dom : "x \<in> snd (fst (the f))"
         unfolding finiteSubsetCat.XId_def by simp
       have "fst (the f) = (fst (fst (the f)), snd (fst (the f)))" by simp
-      have Fx_in_dom : "fst F x \<in> snd (fst (the (finite_subset_image_functor F f)))"
-        unfolding finite_subset_image_functor_def apply (simp add: arr_f)
+      have Fx_in_dom : "fst F x \<in> snd (fst (the (subset_image_functor F f)))"
+        unfolding subset_image_functor_def apply (simp add: arr_f)
         apply (subst \<open>fst (the f) = (fst (fst (the f)), snd (fst (the f)))\<close>)
         apply (subst pointed_image.simps)
         by (simp add: x_in_f_dom)
 
-      show "fst (the (finite_subset_inclusion_functor (snd (snd F)) (finite_subset_image_functor F f)))
-          (fst (the (finite_subset_image_nattrafo F (Some (finiteSubsetCat.XId (fst (the f)))))) x) =
-         fst (the (finite_subset_image_nattrafo F f)) x"
-        unfolding finite_subset_image_nattrafo_def apply (simp add: arr_id1 arr_f)
+      show "fst (the (finite_subset_inclusion_functor (snd (snd F)) (subset_image_functor F f)))
+          (fst (the (subset_image_nattrafo F (Some (finiteSubsetCat.XId (fst (the f)))))) x) =
+         fst (the (subset_image_nattrafo F f)) x"
+        unfolding subset_image_nattrafo_def apply (simp add: arr_id1 arr_f)
         unfolding MkArr_def apply (simp add: x_in_id_dom x_in_f_dom)
         unfolding finite_subset_inclusion_functor_def apply (simp add: arr_Ff)
         unfolding inclusion_map_def MkArr_def by (simp add: Fx_in_dom)
     qed
     then show "Some
-     (the (finite_subset_inclusion_functor (snd (snd F)) (finite_subset_image_functor F f)) \<cdot>
-      the (finite_subset_image_nattrafo F (Some (finiteSubsetCat.XId (fst (the f)))))) =
-    finite_subset_image_nattrafo F f"
+     (the (finite_subset_inclusion_functor (snd (snd F)) (subset_image_functor F f)) \<cdot>
+      the (subset_image_nattrafo F (Some (finiteSubsetCat.XId (fst (the f)))))) =
+    subset_image_nattrafo F f"
       apply (subst EQ)
-      unfolding finite_subset_image_nattrafo_def by (simp add: arr_f)
+      unfolding subset_image_nattrafo_def by (simp add: arr_f)
   qed
 
   have arr_id2: "partial_magma.arr (finiteSubsetCat.comp (fst (snd F))) (Some (finiteSubsetCat.XId (snd (the f))))"
@@ -882,15 +882,15 @@ proof-
     
 
   show "pointed_set_comp
-          (finite_subset_image_nattrafo F (partial_magma.cod (finiteSubsetCat.comp (fst (snd F))) f))
+          (subset_image_nattrafo F (partial_magma.cod (finiteSubsetCat.comp (fst (snd F))) f))
           (finite_subset_inclusion_functor (fst (snd F)) f) =
-         finite_subset_image_nattrafo F f"
+         subset_image_nattrafo F f"
     unfolding finiteSubsetCat.cod_char
     apply (simp add: arr_f)
     apply (subst comp_char)
        apply (rule_tac finite_subset_inclusion_functor_arr [OF arr_f])
-      apply (rule_tac finite_subset_image_nattrafo_arr [OF \<open>Arr' F\<close> arr_id2])
-    unfolding finite_subset_image_nattrafo_dom [OF \<open>Arr' F\<close> arr_id2]
+      apply (rule_tac subset_image_nattrafo_arr [OF \<open>Arr' F\<close> arr_id2])
+    unfolding subset_image_nattrafo_dom [OF \<open>Arr' F\<close> arr_id2]
               finiteSubsetCat.dom_char
               finite_subset_inclusion_functor_cod [OF arr_f]
               finiteSubsetCat.cod_char
@@ -901,30 +901,30 @@ proof-
       using arr_id2
       unfolding finiteSubsetCat.XId_def.
 
-    have EQ: "the (finite_subset_image_nattrafo F (Some (snd (the f), snd (the f)))) \<cdot>
+    have EQ: "the (subset_image_nattrafo F (Some (snd (the f), snd (the f)))) \<cdot>
       the (finite_subset_inclusion_functor (fst (snd F)) f) =
-         the (finite_subset_image_nattrafo F f)"
+         the (subset_image_nattrafo F f)"
       apply (rule_tac comp_eq_char)
-      using finite_subset_image_nattrafo_arr [OF \<open>Arr' F\<close> arr_id2]
+      using subset_image_nattrafo_arr [OF \<open>Arr' F\<close> arr_id2]
       unfolding finiteSubsetCat.XId_def
                 arr_char apply simp
       using finite_subset_inclusion_functor_arr [OF arr_f]
       unfolding arr_char apply simp
-      using finite_subset_image_nattrafo_arr [OF \<open>Arr' F\<close> arr_f]
+      using subset_image_nattrafo_arr [OF \<open>Arr' F\<close> arr_f]
       unfolding arr_char apply simp
     proof-
       show "fst (snd (the (finite_subset_inclusion_functor (fst (snd F)) f))) =
-    fst (snd (the (finite_subset_image_nattrafo F f)))"
+    fst (snd (the (subset_image_nattrafo F f)))"
         unfolding finite_subset_inclusion_functor_def apply (simp add: arr_f)
-        unfolding finite_subset_image_nattrafo_def MkArr_def apply (simp add: arr_f)
+        unfolding subset_image_nattrafo_def MkArr_def apply (simp add: arr_f)
         unfolding inclusion_map_def MkArr_def by simp
-      show "snd (snd (the (finite_subset_image_nattrafo F (Some (snd (the f), snd (the f)))))) =
-    snd (snd (the (finite_subset_image_nattrafo F f)))"
-        unfolding finite_subset_image_nattrafo_def
+      show "snd (snd (the (subset_image_nattrafo F (Some (snd (the f), snd (the f)))))) =
+    snd (snd (the (subset_image_nattrafo F f)))"
+        unfolding subset_image_nattrafo_def
                   MkArr_def by (simp add: arr_f arr_id2)
-      show "fst (snd (the (finite_subset_image_nattrafo F (Some (snd (the f), snd (the f)))))) =
+      show "fst (snd (the (subset_image_nattrafo F (Some (snd (the f), snd (the f)))))) =
     snd (snd (the (finite_subset_inclusion_functor (fst (snd F)) f)))"
-        unfolding finite_subset_image_nattrafo_def
+        unfolding subset_image_nattrafo_def
                   MkArr_def apply (simp add: arr_id2)
         unfolding finite_subset_inclusion_functor_def apply (simp add: arr_f)
         unfolding inclusion_map_def MkArr_def by simp
@@ -937,26 +937,26 @@ proof-
         using pft
         unfolding pointed_finset_triangle_def
         by auto
-      show "fst (the (finite_subset_image_nattrafo F (Some (snd (the f), snd (the f)))))
+      show "fst (the (subset_image_nattrafo F (Some (snd (the f), snd (the f)))))
           (fst (the (finite_subset_inclusion_functor (fst (snd F)) f)) x) =
-         fst (the (finite_subset_image_nattrafo F f)) x"
+         fst (the (subset_image_nattrafo F f)) x"
         unfolding finite_subset_inclusion_functor_def apply (simp add: arr_f)
         unfolding inclusion_map_def MkArr_def apply (simp add: x_in_f_dom)
-        unfolding finite_subset_image_nattrafo_def apply (simp add: arr_id2 arr_f)
+        unfolding subset_image_nattrafo_def apply (simp add: arr_id2 arr_f)
         unfolding MkArr_def by (simp add: x_in_f_dom x_in_f_dom2)
     qed
     show "Some
-     (the (finite_subset_image_nattrafo F (Some (snd (the f), snd (the f)))) \<cdot>
+     (the (subset_image_nattrafo F (Some (snd (the f), snd (the f)))) \<cdot>
       the (finite_subset_inclusion_functor (fst (snd F)) f)) =
-    finite_subset_image_nattrafo F f"
+    subset_image_nattrafo F f"
       apply (subst EQ)
-      unfolding finite_subset_image_nattrafo_def by (simp add: arr_f)
+      unfolding subset_image_nattrafo_def by (simp add: arr_f)
   qed
 qed
 
-lemma finite_subset_image_nattrafo_id: 
+lemma subset_image_nattrafo_id: 
   assumes ide_c : "partial_magma.ide pointed_set_comp c"
-  shows "(finite_subset_image_nattrafo (the c)) = 
+  shows "(subset_image_nattrafo (the c)) = 
          finite_subset_inclusion_functor (Dom' (the c))"
 proof
   from ide_c have "Arr' (the c)"
@@ -965,10 +965,10 @@ proof
     unfolding ide_char by simp
   fix x
   have "partial_magma.arr (finiteSubsetCat.comp (fst (snd (the c)))) x \<Longrightarrow>
-         the (finite_subset_image_nattrafo (the c) x) =
+         the (subset_image_nattrafo (the c) x) =
          the (finite_subset_inclusion_functor (fst (snd (the c))) x)"
     apply (rule_tac fun_eq_char)
-    using finite_subset_image_nattrafo_arr [OF \<open>Arr' (the c)\<close>]
+    using subset_image_nattrafo_arr [OF \<open>Arr' (the c)\<close>]
     unfolding arr_char apply simp
     using finite_subset_inclusion_functor_arr
     unfolding arr_char apply blast
@@ -985,17 +985,17 @@ proof
       by blast
                   
 
-    show "fst (snd (the (finite_subset_image_nattrafo (the c) x))) =
+    show "fst (snd (the (subset_image_nattrafo (the c) x))) =
     fst (snd (the (finite_subset_inclusion_functor (fst (snd (the c))) x)))"
-      unfolding finite_subset_image_nattrafo_def
+      unfolding subset_image_nattrafo_def
                 finite_subset_inclusion_functor_def
       apply (simp add: arr_x)
       unfolding inclusion_map_def
                 MkArr_def
       by simp
-    show "snd (snd (the (finite_subset_image_nattrafo (the c) x))) =
+    show "snd (snd (the (subset_image_nattrafo (the c) x))) =
     snd (snd (the (finite_subset_inclusion_functor (fst (snd (the c))) x)))" 
-      unfolding finite_subset_image_nattrafo_def
+      unfolding subset_image_nattrafo_def
                 finite_subset_inclusion_functor_def
       apply (simp add: arr_x)
       unfolding inclusion_map_def
@@ -1024,9 +1024,9 @@ proof
         by auto
     qed
     fix z
-    assume "z \<in> snd (fst (snd (the (finite_subset_image_nattrafo (the c) x))))"
+    assume "z \<in> snd (fst (snd (the (subset_image_nattrafo (the c) x))))"
     then have z_in_dom_x: "z \<in> snd (fst (the x))"
-      unfolding finite_subset_image_nattrafo_def
+      unfolding subset_image_nattrafo_def
       apply (simp add: arr_x)
       unfolding MkArr_def
       by simp
@@ -1035,9 +1035,9 @@ proof
       unfolding pointed_finset_triangle_def
                 pointed_finset_def
       by auto
-    show "fst (the (finite_subset_image_nattrafo (the c) x)) z =
+    show "fst (the (subset_image_nattrafo (the c) x)) z =
           fst (the (finite_subset_inclusion_functor (fst (snd (the c))) x)) z"
-      unfolding finite_subset_image_nattrafo_def 
+      unfolding subset_image_nattrafo_def 
                   finite_subset_inclusion_functor_def 
       apply (simp add: arr_x)
       unfolding inclusion_map_def MkArr_def
@@ -1047,9 +1047,9 @@ proof
       by (simp add: z_in_dom_c)
   qed
 
-  then show "finite_subset_image_nattrafo (the c) x =
+  then show "subset_image_nattrafo (the c) x =
          finite_subset_inclusion_functor (fst (snd (the c))) x "
-    unfolding finite_subset_image_nattrafo_def
+    unfolding subset_image_nattrafo_def
               finite_subset_inclusion_functor_def
     by auto
       
@@ -1057,14 +1057,14 @@ qed
 
 
 
-lemma finite_subset_image_nattrafo_factors:
+lemma subset_image_nattrafo_factors:
  assumes "Arr' F" 
 
 shows "nat_trafo_factorization (finiteSubsetCat.comp (fst (snd F)))
      pointed_set_comp (finite_subset_inclusion_functor (fst (snd F)))
      (finite_subset_inclusion_functor (snd (snd F)) \<circ>
-      finite_subset_image_functor F)
-     (finite_subset_image_nattrafo F) FiniteArr'"
+      subset_image_functor F)
+     (subset_image_nattrafo F) FiniteArr'"
   unfolding nat_trafo_factorization_def
   apply safe
           apply (rule_tac finiteSubsetCat.is_category)
@@ -1074,11 +1074,11 @@ shows "nat_trafo_factorization (finiteSubsetCat.comp (fst (snd F)))
       apply (rule_tac finite_subset_inclusion_functor_factors_finite_sets)
      apply (rule_tac factorization.comp_factorization)
       apply (rule_tac finite_subset_inclusion_functor_factors_finite_sets)
-     apply (rule_tac finite_subset_image_functor [OF \<open>Arr' F\<close>])
+     apply (rule_tac subset_image_functor [OF \<open>Arr' F\<close>])
     apply (rule_tac functor_comp)
-     apply (rule_tac finite_subset_image_functor [OF \<open>Arr' F\<close>])
+     apply (rule_tac subset_image_functor [OF \<open>Arr' F\<close>])
     apply (rule_tac finite_subset_inclusion_functor_all_pointedsets)
-   apply (rule_tac finite_subset_image_nattrafo_all_pointedsets [OF \<open>Arr' F\<close>])
+   apply (rule_tac subset_image_nattrafo_all_pointedsets [OF \<open>Arr' F\<close>])
   unfolding nat_trafo_factorization_axioms_def
   apply safe
 proof-
@@ -1094,14 +1094,14 @@ proof-
     unfolding pointed_finset_triangle_def by simp
 
 
-  show "FiniteArr' (finite_subset_image_nattrafo F a)"
+  show "FiniteArr' (subset_image_nattrafo F a)"
     unfolding FiniteArr'_def
     apply safe
   proof-
-    show arr_Fa: "partial_magma.arr pointed_set_comp (finite_subset_image_nattrafo F a)"
-      using finite_subset_image_nattrafo_arr [OF \<open>Arr' F\<close> arr_a] by simp
-    show "finite (snd (fst (snd (the (finite_subset_image_nattrafo F a)))))"
-      unfolding finite_subset_image_nattrafo_def
+    show arr_Fa: "partial_magma.arr pointed_set_comp (subset_image_nattrafo F a)"
+      using subset_image_nattrafo_arr [OF \<open>Arr' F\<close> arr_a] by simp
+    show "finite (snd (fst (snd (the (subset_image_nattrafo F a)))))"
+      unfolding subset_image_nattrafo_def
       apply (simp add: arr_a)
       unfolding MkArr_def
       apply simp
@@ -1109,8 +1109,8 @@ proof-
       unfolding pointed_finset_triangle_def
                 pointed_finset_def
       by simp
-    show "finite (snd (snd (snd (the (finite_subset_image_nattrafo F a)))))"
-      unfolding finite_subset_image_nattrafo_def
+    show "finite (snd (snd (snd (the (subset_image_nattrafo F a)))))"
+      unfolding subset_image_nattrafo_def
       apply (simp add: arr_a)
       unfolding MkArr_def
       apply simp
@@ -1120,16 +1120,16 @@ proof-
   qed
 qed
 
-lemma finite_subset_image_nattrafo:
+lemma subset_image_nattrafo:
  assumes "Arr' F" 
  shows "natural_transformation (finiteSubsetCat.comp (fst (snd F))) pointed_finite_subcat
   (finite_subset_inclusion_functor (fst (snd F)))
   (finite_subset_inclusion_functor (snd (snd F)) \<circ>
-   finite_subset_image_functor F)
-  (finite_subset_image_nattrafo F)"
+   subset_image_functor F)
+  (subset_image_nattrafo F)"
   unfolding pointed_finite_subcat_def
   apply (rule_tac nat_trafo_factorization.is_natural_transformation)
-  apply (rule_tac finite_subset_image_nattrafo_factors)
+  apply (rule_tac subset_image_nattrafo_factors)
   using \<open>Arr' F\<close>.
 
 
@@ -1140,7 +1140,7 @@ interpretation S : category pointed_set_comp
 
 lemma functor_to_cat: "functor_to_cat pointed_set_comp
      (\<lambda>t. finiteSubsetCat.comp (Dom' (the t)))
-     (\<lambda>t. finite_subset_image_functor (the t))"
+     (\<lambda>t. subset_image_functor (the t))"
   unfolding functor_to_cat_def
   apply (simp add: is_category)
   unfolding functor_to_cat_axioms_def
@@ -1154,8 +1154,8 @@ proof-
     by simp
   show "functor (finiteSubsetCat.comp (fst (snd (the (S.dom c)))))
           (finiteSubsetCat.comp (fst (snd (the (S.cod c)))))
-          (finite_subset_image_functor (the c))"
-    using finite_subset_image_functor [OF \<open>Arr' (the c)\<close>]
+          (subset_image_functor (the c))"
+    using subset_image_functor [OF \<open>Arr' (the c)\<close>]
     unfolding pointed_set_comp_def
     unfolding classical_category.dom_char [OF ccpf]
               classical_category.cod_char [OF ccpf]
@@ -1172,15 +1172,15 @@ next
     using finiteSubsetCat.is_category.
   then have "identity_functor (finiteSubsetCat.comp (fst (snd (the c))))"
     unfolding identity_functor_def.
-  show "finite_subset_image_functor (the c) =
+  show "subset_image_functor (the c) =
          identity_functor.map (finiteSubsetCat.comp (fst (snd (the c))))"
   proof
     fix x :: "(('b \<times> 'b set) \<times> 'b \<times> 'b set) option"
     have x_conv1: "fst (the x) = (fst (fst (the x)), snd (fst (the x)))" by simp
     have x_conv2: "snd (the x) = (fst (snd (the x)), snd (snd (the x)))" by simp
-    show "finite_subset_image_functor (the c) x =
+    show "subset_image_functor (the c) x =
          identity_functor.map (finiteSubsetCat.comp (fst (snd (the c)))) x"
-      unfolding finite_subset_image_functor_def
+      unfolding subset_image_functor_def
                 identity_functor.map_def 
                 [OF \<open>identity_functor (finiteSubsetCat.comp (fst (snd (the c))))\<close>]
       apply auto
@@ -1296,9 +1296,9 @@ next
     by simp
 
 
-  show "finite_subset_image_functor (the (pointed_set_comp g f)) =
-           finite_subset_image_functor (the g) \<circ>
-           finite_subset_image_functor (the f)"
+  show "subset_image_functor (the (pointed_set_comp g f)) =
+           subset_image_functor (the g) \<circ>
+           subset_image_functor (the f)"
   proof
     fix x
 
@@ -1306,8 +1306,8 @@ next
          (Some
         (pointed_image (fst (the f)) (fst (the x)),
          pointed_image (fst (the f)) (snd (the x)))) =
-          finite_subset_image_functor (the f) x"
-      unfolding finite_subset_image_functor_def
+          subset_image_functor (the f) x"
+      unfolding subset_image_functor_def
       by simp
 
     then have arr_fx: "partial_magma.arr (finiteSubsetCat.comp (fst (snd (the f)))) x \<Longrightarrow>
@@ -1317,15 +1317,15 @@ next
          pointed_image (fst (the f)) (snd (the x)))))"
       apply simp
       using functor.preserves_arr [OF
-            finite_subset_image_functor [OF \<open>Arr' (the f)\<close>]]
+            subset_image_functor [OF \<open>Arr' (the f)\<close>]]
       unfolding \<open>snd (snd (the f)) = fst (snd (the g))\<close>
       by simp
 
 
-    show "finite_subset_image_functor (the (pointed_set_comp g f)) x =
-         (finite_subset_image_functor (the g) \<circ>
-          finite_subset_image_functor (the f)) x"
-      unfolding finite_subset_image_functor_def
+    show "subset_image_functor (the (pointed_set_comp g f)) x =
+         (subset_image_functor (the g) \<circ>
+          subset_image_functor (the f)) x"
+      unfolding subset_image_functor_def
       apply (simp add: dom_gf cod_gf null_not_arr arr_fx)
       apply safe
     proof-
@@ -1452,8 +1452,8 @@ interpretation S: category pointed_finite_subcat
 lemma functor_to_cat_overX:
      "functor_to_cat_overX pointed_set_comp pointed_finite_subcat
      (\<lambda>t. finiteSubsetCat.comp (fst (snd (the t))))
-     (\<lambda>t. finite_subset_image_functor (the t))
-     (\<lambda>t. finite_subset_image_nattrafo (the t))"
+     (\<lambda>t. subset_image_functor (the t))
+     (\<lambda>t. subset_image_nattrafo (the t))"
   unfolding functor_to_cat_overX_def
   apply safe
     apply (rule_tac functor_to_cat)
@@ -1471,8 +1471,8 @@ proof-
     using ide_char by blast
 
   show "functor (finiteSubsetCat.comp (fst (snd (the c))))
-          pointed_finite_subcat (finite_subset_image_nattrafo (the c))"
-    apply (subst finite_subset_image_nattrafo_id [OF \<open>C.ide c\<close>])
+          pointed_finite_subcat (subset_image_nattrafo (the c))"
+    apply (subst subset_image_nattrafo_id [OF \<open>C.ide c\<close>])
     using finite_subset_inclusion_functor.
 next
   fix c
@@ -1481,16 +1481,16 @@ next
     unfolding arr_char by simp
   show "natural_transformation
           (finiteSubsetCat.comp (fst (snd (the (C.dom c)))))
-          pointed_finite_subcat (finite_subset_image_nattrafo (the (C.dom c)))
-          (finite_subset_image_nattrafo (the (C.cod c)) \<circ>
-           finite_subset_image_functor (the c))
-          (finite_subset_image_nattrafo (the c))"
-    apply (subst finite_subset_image_nattrafo_id [OF C.ide_dom [OF \<open>C.arr c\<close>]])
-    apply (subst finite_subset_image_nattrafo_id [OF C.ide_cod [OF \<open>C.arr c\<close>]])
+          pointed_finite_subcat (subset_image_nattrafo (the (C.dom c)))
+          (subset_image_nattrafo (the (C.cod c)) \<circ>
+           subset_image_functor (the c))
+          (subset_image_nattrafo (the c))"
+    apply (subst subset_image_nattrafo_id [OF C.ide_dom [OF \<open>C.arr c\<close>]])
+    apply (subst subset_image_nattrafo_id [OF C.ide_cod [OF \<open>C.arr c\<close>]])
     unfolding dom_char [OF \<open>C.arr c\<close>]
     unfolding cod_char [OF \<open>C.arr c\<close>]
     unfolding Id'_def apply simp
-    using finite_subset_image_nattrafo [OF \<open>Arr' (the c)\<close>].
+    using subset_image_nattrafo [OF \<open>Arr' (the c)\<close>].
 next
   fix g f
   assume arr_gf: "C.seq g f"
@@ -1510,41 +1510,41 @@ next
 
   have hori_comp : "horizontal_composite (finiteSubsetCat.comp (fst (snd (the f)))) 
      (finiteSubsetCat.comp (snd (snd (the f)))) 
-     pointed_finite_subcat (finite_subset_image_functor (the f))
-     (finite_subset_image_functor (the f))
+     pointed_finite_subcat (subset_image_functor (the f))
+     (subset_image_functor (the f))
      (finite_subset_inclusion_functor (snd (snd (the f))))
      (finite_subset_inclusion_functor (snd (snd (the g))) \<circ>
-      finite_subset_image_functor (the g))
-     (finite_subset_image_functor (the f))
-     (finite_subset_image_nattrafo (the g))"
+      subset_image_functor (the g))
+     (subset_image_functor (the f))
+     (subset_image_nattrafo (the g))"
     unfolding horizontal_composite_def
     apply safe
             apply (rule_tac finiteSubsetCat.is_category)
            apply (rule_tac finiteSubsetCat.is_category)
           apply (rule_tac finite_subcat_is_category)
-         apply (rule_tac finite_subset_image_functor [OF \<open>Arr' (the f)\<close>])
-        apply (rule_tac finite_subset_image_functor [OF \<open>Arr' (the f)\<close>])
+         apply (rule_tac subset_image_functor [OF \<open>Arr' (the f)\<close>])
+        apply (rule_tac subset_image_functor [OF \<open>Arr' (the f)\<close>])
        apply (rule_tac finite_subset_inclusion_functor)
       apply (rule_tac functor_comp)
        apply (subst seq)
-       apply (rule_tac finite_subset_image_functor [OF \<open>Arr' (the g)\<close>])
+       apply (rule_tac subset_image_functor [OF \<open>Arr' (the g)\<close>])
       apply (rule_tac finite_subset_inclusion_functor)
      apply (rule_tac functor_is_transformation)
-     apply (rule_tac finite_subset_image_functor [OF \<open>Arr' (the f)\<close>])
+     apply (rule_tac subset_image_functor [OF \<open>Arr' (the f)\<close>])
     unfolding seq
-    by (rule_tac finite_subset_image_nattrafo [OF \<open>Arr' (the g)\<close>])
+    by (rule_tac subset_image_nattrafo [OF \<open>Arr' (the g)\<close>])
 
   have vert_comp : "vertical_composite (finiteSubsetCat.comp (fst (snd (the (C.dom f)))))
      pointed_finite_subcat 
      (finite_subset_inclusion_functor (Dom' (the f)))
      (finite_subset_inclusion_functor (Cod' (the f)) \<circ> 
-      finite_subset_image_functor (the f))
+      subset_image_functor (the f))
      (finite_subset_inclusion_functor (Cod' (the g)) \<circ> 
-      finite_subset_image_functor (the g) \<circ>
-      finite_subset_image_functor (the f))
-     (finite_subset_image_nattrafo (the f))
-     (finite_subset_image_nattrafo (the g) \<circ>
-      finite_subset_image_functor (the f))"
+      subset_image_functor (the g) \<circ>
+      subset_image_functor (the f))
+     (subset_image_nattrafo (the f))
+     (subset_image_nattrafo (the g) \<circ>
+      subset_image_functor (the f))"
     unfolding dom_char [OF \<open>C.arr f\<close>]
               Id'_def
     apply simp
@@ -1554,33 +1554,33 @@ next
          apply (rule_tac finite_subcat_is_category)
         apply (rule_tac finite_subset_inclusion_functor)
        apply (rule_tac functor_comp)
-        apply (rule_tac finite_subset_image_functor [OF \<open>Arr' (the f)\<close>])
+        apply (rule_tac subset_image_functor [OF \<open>Arr' (the f)\<close>])
        apply (rule_tac finite_subset_inclusion_functor)
       apply (rule_tac functor_comp)
-       apply (rule_tac finite_subset_image_functor [OF \<open>Arr' (the f)\<close>])
+       apply (rule_tac subset_image_functor [OF \<open>Arr' (the f)\<close>])
       apply (rule_tac functor_comp)
        apply (subst seq)
-       apply (rule_tac finite_subset_image_functor [OF \<open>Arr' (the g)\<close>])
+       apply (rule_tac subset_image_functor [OF \<open>Arr' (the g)\<close>])
       apply (rule_tac finite_subset_inclusion_functor)
-     apply (rule_tac finite_subset_image_nattrafo [OF \<open>Arr' (the f)\<close>])
+     apply (rule_tac subset_image_nattrafo [OF \<open>Arr' (the f)\<close>])
     apply (rule_tac horizontal_composite.is_natural_transformation)
     using hori_comp.
 
 
-  show "finite_subset_image_nattrafo (the (pointed_set_comp g f)) =
+  show "subset_image_nattrafo (the (pointed_set_comp g f)) =
            vertical_composite.map
             (finiteSubsetCat.comp (fst (snd (the (C.dom f)))))
-            pointed_finite_subcat (finite_subset_image_nattrafo (the f))
-            (finite_subset_image_nattrafo (the g) \<circ>
-             finite_subset_image_functor (the f))"
+            pointed_finite_subcat (subset_image_nattrafo (the f))
+            (subset_image_nattrafo (the g) \<circ>
+             subset_image_functor (the f))"
   proof
     fix x
-    show "finite_subset_image_nattrafo (the (pointed_set_comp g f)) x =
+    show "subset_image_nattrafo (the (pointed_set_comp g f)) x =
          vertical_composite.map
           (finiteSubsetCat.comp (fst (snd (the (C.dom f)))))
-          pointed_finite_subcat (finite_subset_image_nattrafo (the f))
-          (finite_subset_image_nattrafo (the g) \<circ>
-           finite_subset_image_functor (the f)) x"
+          pointed_finite_subcat (subset_image_nattrafo (the f))
+          (subset_image_nattrafo (the g) \<circ>
+           subset_image_functor (the f)) x"
       unfolding vertical_composite.map_def [OF vert_comp]
       apply auto
     proof-
@@ -1594,8 +1594,8 @@ next
         unfolding dom_char [OF \<open>C.arr f\<close>]
                   Id'_def by simp
       show "\<not> partial_magma.arr (finiteSubsetCat.comp (fst (snd (the (C.dom f))))) x \<Longrightarrow>
-    finite_subset_image_nattrafo (the (pointed_set_comp g f)) x = S.null"
-        unfolding finite_subset_image_nattrafo_def
+    subset_image_nattrafo (the (pointed_set_comp g f)) x = S.null"
+        unfolding subset_image_nattrafo_def
         apply (subst dom_eq1)
         apply simp
         unfolding pointed_finite_subcat_def
@@ -1603,46 +1603,46 @@ next
         by simp
       assume arr_x : "partial_magma.arr (finiteSubsetCat.comp (fst (snd (the (C.dom f))))) x"
       have arr_fx : "partial_magma.arr (finiteSubsetCat.comp (fst (snd (the g))))
-      (finite_subset_image_functor (the f)
+      (subset_image_functor (the f)
         (partial_magma.cod (finiteSubsetCat.comp (fst (snd (the (C.dom f)))))
           x))"
         using functor.preserves_arr [OF 
-              finite_subset_image_functor [OF \<open>Arr' (the f)\<close>]]
+              subset_image_functor [OF \<open>Arr' (the f)\<close>]]
         unfolding dom_eq2 seq
         using category.arr_cod [OF finiteSubsetCat.is_category arr_x]
         by simp
 
-      have comp_helper1 : "FiniteArr' (finite_subset_image_nattrafo (the f) x) \<and>
+      have comp_helper1 : "FiniteArr' (subset_image_nattrafo (the f) x) \<and>
         FiniteArr'
-         (finite_subset_image_nattrafo (the g)
-           (finite_subset_image_functor (the f)
+         (subset_image_nattrafo (the g)
+           (subset_image_functor (the f)
              (partial_magma.cod
                (finiteSubsetCat.comp (fst (snd (the (C.dom f))))) x))) \<and>
         C.seq
-         (finite_subset_image_nattrafo (the g)
-           (finite_subset_image_functor (the f)
+         (subset_image_nattrafo (the g)
+           (subset_image_functor (the f)
              (partial_magma.cod
                (finiteSubsetCat.comp (fst (snd (the (C.dom f))))) x)))
-         (finite_subset_image_nattrafo (the f) x)"
+         (subset_image_nattrafo (the f) x)"
         apply safe
         apply (rule_tac nat_trafo_factorization.lands_in_subcat [OF 
-              finite_subset_image_nattrafo_factors])
+              subset_image_nattrafo_factors])
         using \<open>Arr' (the f)\<close> apply simp
         using arr_x dom_eq2 apply simp
         apply (rule_tac nat_trafo_factorization.lands_in_subcat [OF 
-              finite_subset_image_nattrafo_factors])
+              subset_image_nattrafo_factors])
         using \<open>Arr' (the g)\<close> apply simp
         using arr_fx apply simp
         apply (rule_tac C.seqI)
-          apply (rule_tac finite_subset_image_nattrafo_arr [OF \<open>Arr' (the f)\<close>])
+          apply (rule_tac subset_image_nattrafo_arr [OF \<open>Arr' (the f)\<close>])
         using arr_x dom_eq2 apply simp
-         apply (rule_tac finite_subset_image_nattrafo_arr [OF \<open>Arr' (the g)\<close>])
+         apply (rule_tac subset_image_nattrafo_arr [OF \<open>Arr' (the g)\<close>])
         using arr_fx apply simp
-        apply (subst finite_subset_image_nattrafo_dom [OF \<open>Arr' (the g)\<close> arr_fx])
-        apply (subst finite_subset_image_nattrafo_cod [OF \<open>Arr' (the f)\<close>])
+        apply (subst subset_image_nattrafo_dom [OF \<open>Arr' (the g)\<close> arr_fx])
+        apply (subst subset_image_nattrafo_cod [OF \<open>Arr' (the f)\<close>])
         using arr_x dom_eq2 apply simp
         unfolding dom_eq2 reverse_equality [OF seq]
-        apply (subst finite_subset_image_functor_dom [OF \<open>Arr' (the f)\<close>])
+        apply (subst subset_image_functor_dom [OF \<open>Arr' (the f)\<close>])
         using category.arr_cod [OF finiteSubsetCat.is_category arr_x]
         unfolding dom_eq2 apply simp
         apply (subst category.ideD(2) [OF finiteSubsetCat.is_category])
@@ -1650,13 +1650,13 @@ next
         by simp
 
 
-      show "finite_subset_image_nattrafo (the (pointed_set_comp g f)) x =
+      show "subset_image_nattrafo (the (pointed_set_comp g f)) x =
     pointed_finite_subcat
-     (finite_subset_image_nattrafo (the g)
-       (finite_subset_image_functor (the f)
+     (subset_image_nattrafo (the g)
+       (subset_image_functor (the f)
          (partial_magma.cod (finiteSubsetCat.comp (fst (snd (the (C.dom f)))))
            x)))
-     (finite_subset_image_nattrafo (the f) x)"
+     (subset_image_nattrafo (the f) x)"
         unfolding pointed_finite_subcat_def
         apply (subst subcategory.comp_char [OF finite_subcat])
         unfolding subcategory.arr_char [OF finite_subcat]
@@ -1664,50 +1664,50 @@ next
         apply (rule_tac reverse_equality)
         apply (subst comp_char)
       proof-
-        show arr_if: "C.arr (finite_subset_image_nattrafo (the f) x)"
-           apply (rule_tac finite_subset_image_nattrafo_arr [OF \<open>Arr' (the f)\<close>])
+        show arr_if: "C.arr (subset_image_nattrafo (the f) x)"
+           apply (rule_tac subset_image_nattrafo_arr [OF \<open>Arr' (the f)\<close>])
           using arr_x dom_eq2 by simp
         show arr_ig: "C.arr
-     (finite_subset_image_nattrafo (the g)
-       (finite_subset_image_functor (the f)
+     (subset_image_nattrafo (the g)
+       (subset_image_functor (the f)
          (partial_magma.cod (finiteSubsetCat.comp (fst (snd (the (C.dom f)))))
            x)))"
-          apply (rule_tac finite_subset_image_nattrafo_arr [OF \<open>Arr' (the g)\<close>])
+          apply (rule_tac subset_image_nattrafo_arr [OF \<open>Arr' (the g)\<close>])
         unfolding reverse_equality [OF seq]
-          apply (rule_tac finite_subset_image_functor_arr [OF \<open>Arr' (the f)\<close>])
+          apply (rule_tac subset_image_functor_arr [OF \<open>Arr' (the f)\<close>])
         using category.ide_cod [OF finiteSubsetCat.is_category arr_x]
         unfolding dom_eq2 category.ide_char [OF finiteSubsetCat.is_category]
         by simp
       show "C.dom
-     (finite_subset_image_nattrafo (the g)
-       (finite_subset_image_functor (the f)
+     (subset_image_nattrafo (the g)
+       (subset_image_functor (the f)
          (partial_magma.cod (finiteSubsetCat.comp (fst (snd (the (C.dom f)))))
            x))) =
-    C.cod (finite_subset_image_nattrafo (the f) x)"
-        apply (subst finite_subset_image_nattrafo_dom [OF \<open>Arr' (the g)\<close> arr_fx])
-        apply (subst finite_subset_image_nattrafo_cod [OF \<open>Arr' (the f)\<close>])
+    C.cod (subset_image_nattrafo (the f) x)"
+        apply (subst subset_image_nattrafo_dom [OF \<open>Arr' (the g)\<close> arr_fx])
+        apply (subst subset_image_nattrafo_cod [OF \<open>Arr' (the f)\<close>])
         using arr_x dom_eq2 apply simp
         unfolding dom_eq2 reverse_equality [OF seq]
-        apply (subst finite_subset_image_functor_dom [OF \<open>Arr' (the f)\<close>])
+        apply (subst subset_image_functor_dom [OF \<open>Arr' (the f)\<close>])
         using category.arr_cod [OF finiteSubsetCat.is_category arr_x]
         unfolding dom_eq2 apply simp
         apply (subst category.ideD(2) [OF finiteSubsetCat.is_category])
         using category.ide_cod [OF finiteSubsetCat.is_category arr_x] apply simp
         by simp
 
-      have arr_igf : "C.arr (finite_subset_image_nattrafo (the (pointed_set_comp g f)) x)" 
-        apply (rule_tac finite_subset_image_nattrafo_arr)
+      have arr_igf : "C.arr (subset_image_nattrafo (the (pointed_set_comp g f)) x)" 
+        apply (rule_tac subset_image_nattrafo_arr)
         using arr_gf
         unfolding arr_char apply simp
         using dom_eq1 arr_x
         by simp
 
-        have EQ: "the (finite_subset_image_nattrafo (the (pointed_set_comp g f)) x) =
-     (the (finite_subset_image_nattrafo (the g)
-            (finite_subset_image_functor (the f)
+        have EQ: "the (subset_image_nattrafo (the (pointed_set_comp g f)) x) =
+     (the (subset_image_nattrafo (the g)
+            (subset_image_functor (the f)
               (partial_magma.cod
                 (finiteSubsetCat.comp (fst (snd (the (C.dom f))))) x))) \<cdot>
-      the (finite_subset_image_nattrafo (the f) x))"
+      the (subset_image_nattrafo (the f) x))"
           apply (rule_tac reverse_equality)
           apply (rule_tac comp_eq_char)
           using arr_ig
@@ -1717,13 +1717,13 @@ next
           using arr_igf
           unfolding arr_char apply simp
         proof-
-          show "fst (snd (the (finite_subset_image_nattrafo (the f) x))) =
-    fst (snd (the (finite_subset_image_nattrafo (the (pointed_set_comp g f))
+          show "fst (snd (the (subset_image_nattrafo (the f) x))) =
+    fst (snd (the (subset_image_nattrafo (the (pointed_set_comp g f))
                     x)))"
             apply (subst comp_char [OF \<open>C.arr f\<close> \<open>C.arr g\<close> \<open>C.dom g = C.cod f\<close>])
             unfolding Comp'_def
             apply (simp add: \<open>Arr' (the f)\<close> \<open>Arr' (the g)\<close> seq)
-            unfolding finite_subset_image_nattrafo_def apply (simp add: arr_x dom_eq2)
+            unfolding subset_image_nattrafo_def apply (simp add: arr_x dom_eq2)
             unfolding MkArr_def by simp
           have arr_cod_x : "partial_magma.arr (finiteSubsetCat.comp (fst (snd (the f))))
      (partial_magma.cod (finiteSubsetCat.comp (fst (snd (the (C.dom f))))) x)"
@@ -1732,11 +1732,11 @@ next
                       category.ide_char [OF finiteSubsetCat.is_category]
             by simp
           have arr_f_cod_x : "(partial_magma.arr (finiteSubsetCat.comp (fst (snd (the g))))
-      (finite_subset_image_functor (the f)
+      (subset_image_functor (the f)
         (partial_magma.cod (finiteSubsetCat.comp (fst (snd (the (C.dom f)))))
           x)))"
             unfolding reverse_equality [OF seq]
-            apply (rule_tac finite_subset_image_functor_arr [OF \<open>Arr' (the f)\<close>])
+            apply (rule_tac subset_image_functor_arr [OF \<open>Arr' (the f)\<close>])
             using category.ide_cod [OF finiteSubsetCat.is_category arr_x]
             unfolding dom_eq2
                       category.ide_char [OF finiteSubsetCat.is_category]
@@ -1749,23 +1749,23 @@ next
                       Id'_def
             by simp
 
-          have "C.cod (finite_subset_image_nattrafo (the g)
-                    (finite_subset_image_functor (the f)
+          have "C.cod (subset_image_nattrafo (the g)
+                    (subset_image_functor (the f)
                       (partial_magma.cod
                         (finiteSubsetCat.comp (fst (snd (the (C.dom f)))))
                         x))) =
-    C.cod (finite_subset_image_nattrafo (the (pointed_set_comp g f))
+    C.cod (subset_image_nattrafo (the (pointed_set_comp g f))
                     x)"
-            apply (subst finite_subset_image_nattrafo_cod [OF \<open>Arr' (the g)\<close>])
+            apply (subst subset_image_nattrafo_cod [OF \<open>Arr' (the g)\<close>])
             using arr_f_cod_x apply simp
             apply (subst reverse_equality [OF seq])
-            apply (subst finite_subset_image_functor_cod [OF \<open>Arr' (the f)\<close>])
+            apply (subst subset_image_functor_cod [OF \<open>Arr' (the f)\<close>])
             using arr_cod_x apply simp
             apply (subst dom_eq2)
             apply (subst category.ideD(3) [OF finiteSubsetCat.is_category
                   category.ide_cod [OF finiteSubsetCat.is_category]])
             using arr_x apply simp
-            apply (subst finite_subset_image_nattrafo_cod)
+            apply (subst subset_image_nattrafo_cod)
             using arr_gf
             unfolding arr_char apply simp
             using dom_eq1 arr_x apply simp
@@ -1773,50 +1773,50 @@ next
             using dom_eq1 cod_eq1 by simp
             
 
-          then show "snd (snd (the (finite_subset_image_nattrafo (the g)
-                    (finite_subset_image_functor (the f)
+          then show "snd (snd (the (subset_image_nattrafo (the g)
+                    (subset_image_functor (the f)
                       (partial_magma.cod
                         (finiteSubsetCat.comp (fst (snd (the (C.dom f)))))
                         x))))) =
-    snd (snd (the (finite_subset_image_nattrafo (the (pointed_set_comp g f))
+    snd (snd (the (subset_image_nattrafo (the (pointed_set_comp g f))
                     x)))"
             unfolding cod_char [OF arr_ig]
                       cod_char [OF arr_igf]
                       Id'_def
             by simp
-          have "C.dom (finite_subset_image_nattrafo (the g)
-                    (finite_subset_image_functor (the f)
+          have "C.dom (subset_image_nattrafo (the g)
+                    (subset_image_functor (the f)
                       (partial_magma.cod
                         (finiteSubsetCat.comp (fst (snd (the (C.dom f)))))
-                        x))) = C.cod (finite_subset_image_nattrafo (the f) x)"
-            apply (subst finite_subset_image_nattrafo_dom [OF \<open>Arr' (the g)\<close>])
+                        x))) = C.cod (subset_image_nattrafo (the f) x)"
+            apply (subst subset_image_nattrafo_dom [OF \<open>Arr' (the g)\<close>])
             using arr_f_cod_x apply simp
             unfolding reverse_equality [OF seq]
-            apply (subst finite_subset_image_functor_dom [OF \<open>Arr' (the f)\<close>])
+            apply (subst subset_image_functor_dom [OF \<open>Arr' (the f)\<close>])
             using arr_cod_x apply simp
             unfolding dom_eq2
             apply (subst category.ideD(2) [OF finiteSubsetCat.is_category
                   category.ide_cod [OF finiteSubsetCat.is_category]])
             using arr_x apply simp
-            apply (subst finite_subset_image_nattrafo_cod [OF \<open>Arr' (the f)\<close>])
+            apply (subst subset_image_nattrafo_cod [OF \<open>Arr' (the f)\<close>])
             using arr_x dom_eq2 apply simp
             using dom_eq2 by simp
 
-          then show "fst (snd (the (finite_subset_image_nattrafo (the g)
-                    (finite_subset_image_functor (the f)
+          then show "fst (snd (the (subset_image_nattrafo (the g)
+                    (subset_image_functor (the f)
                       (partial_magma.cod
                         (finiteSubsetCat.comp (fst (snd (the (C.dom f)))))
                         x))))) =
-    snd (snd (the (finite_subset_image_nattrafo (the f) x)))"
+    snd (snd (the (subset_image_nattrafo (the f) x)))"
             unfolding dom_char [OF arr_ig]
                       cod_char [OF arr_if]
                       Id'_def
             by simp
           fix z
-          assume "z \<in> snd (fst (snd (the (finite_subset_image_nattrafo (the f)
+          assume "z \<in> snd (fst (snd (the (subset_image_nattrafo (the f)
                                     x))))"
           then have z_in_dom : "z \<in> snd (fst (the x))"
-            unfolding finite_subset_image_nattrafo_def
+            unfolding subset_image_nattrafo_def
             apply (simp add: arr_x dom_eq2)
             unfolding MkArr_def by simp
           then have z_in_snd_x : "z \<in> snd (snd (the x))"
@@ -1836,13 +1836,13 @@ next
             by auto
 
           have f_z_in_dom : "fst (the f) z
-     \<in> snd (fst (the (finite_subset_image_functor (the f)
+     \<in> snd (fst (the (subset_image_functor (the f)
                         (partial_magma.cod
                           (finiteSubsetCat.comp (fst (snd (the (C.dom f)))))
                           x))))"
             unfolding finiteSubsetCat.cod_char
             apply (simp add: arr_x)
-            apply (subst reverse_equality [OF finite_subset_image_functor_id])
+            apply (subst reverse_equality [OF subset_image_functor_id])
                apply (simp add: \<open>Arr' (the f)\<close>)
             using arr_x dom_eq2 apply simp
             using arr_x
@@ -1855,16 +1855,16 @@ next
             apply (simp add: pointed_image_simps)
             using z_in_snd_x by simp
 
-          show "fst (the (finite_subset_image_nattrafo (the g)
-                     (finite_subset_image_functor (the f)
+          show "fst (the (subset_image_nattrafo (the g)
+                     (subset_image_functor (the f)
                        (partial_magma.cod
                          (finiteSubsetCat.comp (fst (snd (the (C.dom f)))))
                          x))))
-           (fst (the (finite_subset_image_nattrafo (the f) x)) z) =
-          fst (the (finite_subset_image_nattrafo (the (pointed_set_comp g f))
+           (fst (the (subset_image_nattrafo (the f) x)) z) =
+          fst (the (subset_image_nattrafo (the (pointed_set_comp g f))
                      x))
            z"
-            unfolding finite_subset_image_nattrafo_def
+            unfolding subset_image_nattrafo_def
             apply (simp add: arr_x dom_eq2 dom_eq1 arr_f_cod_x)
             unfolding MkArr_def
             apply (simp add: z_in_dom f_z_in_dom)
@@ -1874,14 +1874,14 @@ next
             by (simp add: \<open>Arr' (the f)\<close> \<open>Arr' (the g)\<close> seq z_in_f_dom)
         qed
         show "Some
-     (the (finite_subset_image_nattrafo (the g)
-            (finite_subset_image_functor (the f)
+     (the (subset_image_nattrafo (the g)
+            (subset_image_functor (the f)
               (partial_magma.cod
                 (finiteSubsetCat.comp (fst (snd (the (C.dom f))))) x))) \<cdot>
-      the (finite_subset_image_nattrafo (the f) x)) =
-    finite_subset_image_nattrafo (the (pointed_set_comp g f)) x"
+      the (subset_image_nattrafo (the f) x)) =
+    subset_image_nattrafo (the (pointed_set_comp g f)) x"
           apply (subst reverse_equality [OF EQ])
-          unfolding finite_subset_image_nattrafo_def 
+          unfolding subset_image_nattrafo_def 
           by (simp add: arr_x dom_eq1)
       qed
     qed
@@ -2343,14 +2343,14 @@ qed
 
 lemma colimit_existence : 
     shows "colimit (finiteSubsetCat.comp X) pointed_set_comp F
-           colimit_cocone colimit_obj colimit_UP_map"
+           colimit_obj colimit_cocone colimit_UP_map"
   unfolding colimit_def
   using cocone_nat
   unfolding natural_transformation_def
   apply simp
 proof-
-  show "colimit_axioms (finiteSubsetCat.comp X) pointed_set_comp F colimit_cocone
-     colimit_obj colimit_UP_map"
+  show "colimit_axioms (finiteSubsetCat.comp X) pointed_set_comp F colimit_obj 
+     colimit_cocone colimit_UP_map"
     unfolding colimit_axioms_def
     apply safe
   proof-
@@ -2825,20 +2825,21 @@ begin
 
 interpretation pointed_set.
 
-
+(*I is an equivalence between pointed_fin_set.comp, and the full subcategory of pointed_set_comp
+ on the finite pointed sets.*)
 definition I where
   "I = inclusion_inverse"
 
 definition MIFunctor where
-  "MIFunctor t = (M \<circ> I) \<circ> (finite_subset_image_nattrafo (the t))"
+  "MIFunctor t = (M \<circ> I) \<circ> (subset_image_nattrafo (the t))"
 
-interpretation S : category pointed_set_comp
+interpretation P : category pointed_set_comp
   using is_category.
 
 interpretation FTCOX : functor_to_cat_overX pointed_set_comp pointed_finite_subcat
    "(\<lambda>t. finiteSubsetCat.comp (fst (snd (the t))))"
-   "(\<lambda>t. finite_subset_image_functor (the t))"
-   "(\<lambda>t. finite_subset_image_nattrafo (the t))"
+   "(\<lambda>t. subset_image_functor (the t))"
+   "(\<lambda>t. subset_image_nattrafo (the t))"
   using functor_to_cat_overX.
 
 
@@ -2847,7 +2848,7 @@ interpretation Colimit_Functoriality:
        pointed_set_comp
        pointed_set_comp
        "(\<lambda>t. finiteSubsetCat.comp (Dom' (the t)))"
-       "(\<lambda>t. finite_subset_image_functor (the t))"
+       "(\<lambda>t. subset_image_functor (the t))"
        MIFunctor
        "(\<lambda>t. finsubset_colimit.colimit_obj (Dom' (the t)) (MIFunctor t))"
        "(\<lambda>t. finsubset_colimit.colimit_cocone (Dom' (the t)) (MIFunctor t))"
@@ -2870,11 +2871,11 @@ interpretation Colimit_Functoriality:
   apply safe
 proof-
   fix c :: "'a LC parr option"
-  assume "S.ide c"
+  assume "P.ide c"
   show "functor (finiteSubsetCat.comp (fst (snd (the c)))) pointed_set_comp
-          (M \<circ> I \<circ> finite_subset_image_nattrafo (the c))"
+          (M \<circ> I \<circ> subset_image_nattrafo (the c))"
     apply (rule_tac functor_comp)
-    using FTCOX.\<tau>fun [OF \<open>S.ide c\<close>] apply simp
+    using FTCOX.\<tau>fun [OF \<open>P.ide c\<close>] apply simp
     apply (rule_tac functor_comp)
     unfolding I_def
   using finset_equivalence
@@ -2883,7 +2884,7 @@ proof-
   using M.functor_axioms.
   show "Obj' (fst (snd (the c)))"
     apply (rule_tac classical_category.Obj_Dom [OF ccpf])
-    using \<open>S.ide c\<close>
+    using \<open>P.ide c\<close>
     unfolding ide_char arr_char by simp
 qed
 
@@ -2894,6 +2895,20 @@ definition map where
 lemma is_functor: "functor pointed_set_comp pointed_set_comp map"
   unfolding map_def
   using Colimit_Functoriality.is_functor.
+
+lemma on_obj : "P.ide A \<Longrightarrow>
+  \<exists> \<alpha> \<beta>. colimit (finiteSubsetCat.comp (pointed_set.Dom' (the A))) pointed_set_comp
+(M \<circ> I \<circ> finite_subset_inclusion_functor (pointed_set.Dom' (the A))) 
+(map A) \<alpha> \<beta>"
+  unfolding reverse_equality [OF subset_image_nattrafo_id]
+  unfolding reverse_equality [OF MIFunctor_def]
+  apply (rule_tac exI)
+  apply (rule_tac exI)
+  unfolding map_def
+  unfolding Colimit_Functoriality.colim_functor_obj_simp
+  apply (rule_tac Colimit_Functoriality.colimit_existence)
+  by simp
+
 
 
 end

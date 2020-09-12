@@ -11,6 +11,7 @@ begin
 
 
 
+
 locale product_functor =
   F : "functor" A B F +
   G : "functor" C D G
@@ -192,18 +193,18 @@ lemma smash_with_Y: "functor Gamma.comp sSet.comp smash_with_Y"
   unfolding smash_with_Y_def
   using smash_with_Y.is_functor.
 
-interpretation set_endofunctor: gammaset_as_endofunctor Coeff
+interpretation coeff_as_endofunctor: gammaset_as_endofunctor Coeff
   unfolding gammaset_as_endofunctor_def
   using Coeff.functor_axioms
   by simp
 
 interpretation sSet_endofunctor: compose_with_functor 
-                   Delta.comp pointed_set.pointed_set_comp pointed_set.pointed_set_comp
-                   set_endofunctor.map
+                   simplex.comp pointed_set.pointed_set_comp pointed_set.pointed_set_comp
+                   coeff_as_endofunctor.map
   unfolding compose_with_functor_def
   unfolding functor_category_def
   apply (simp add: Delta.is_category pointed_set.is_category)
-  using set_endofunctor.is_functor.
+  using coeff_as_endofunctor.is_functor.
 
 definition sSet_endofunctor where
   "sSet_endofunctor = sSet_endofunctor.map"

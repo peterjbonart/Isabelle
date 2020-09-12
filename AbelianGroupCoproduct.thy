@@ -481,7 +481,7 @@ proof-
     using \<tau>.\<tau>fun [OF ide_c].
 
   show "colimit (discrete_category.comp (S.set c)) Ab.comp (Cocone.cocone c)
-          (coproduct_inc_nattrafo c) (Some (Ab.Id' (coproduct_of_A (S.set c))))
+          (Some (Ab.Id' (coproduct_of_A (S.set c)))) (coproduct_inc_nattrafo c) 
           (coproduct_UP_map c)"
     unfolding colimit_def
     apply (simp add: AbC.category_axioms DC.category_axioms F.functor_axioms)
@@ -604,8 +604,8 @@ proof-
          Const.map  "(coproduct_inc_nattrafo c)"
       using nat.
 
-    show "colimit_axioms DC.comp Ab.comp (Cocone.cocone c) (coproduct_inc_nattrafo c)
-     (Some (Ab.Id' (coproduct_of_A (S.set c)))) (coproduct_UP_map c)"
+    show "colimit_axioms DC.comp Ab.comp (Cocone.cocone c) (Some (Ab.Id' (coproduct_of_A (S.set c))))
+      (coproduct_inc_nattrafo c) (coproduct_UP_map c)"
       unfolding colimit_axioms_def
       apply auto
     proof-
@@ -1382,8 +1382,8 @@ proof-
     by (simp add: assms)
   interpret ColimCod : colimit 
    Cod.comp Ab.comp "(Cocone.cocone (S.cod f))"
-   "(coproduct_inc_nattrafo (S.cod f))"
    "(Some (Ab.Id' (coproduct_of_A (S.Cod f))))"
+   "(coproduct_inc_nattrafo (S.cod f))"
    "(coproduct_UP_map (S.cod f))"
     using ColimFun.colimit_existence [OF \<open>S.ide (S.cod f)\<close>].
     

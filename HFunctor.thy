@@ -10,20 +10,11 @@ begin
 
 
 
-
-
-context group_to_Lawvere_theory_functor
-begin
-
-
-end
-
-
 section "Abelian Groups to Gammaset"
 
-locale GroupToGammaset =
-  G: comm_group G
-  for G:: "('a,'b) monoid_scheme"
+locale group_to_gammaset =
+  A: comm_group A
+  for A:: "('a,'b) monoid_scheme"
 begin
 
 
@@ -31,12 +22,12 @@ interpretation Ab : abelian_group_category.
 interpretation AbCC : classical_category Ab.Obj' Ab.Arr' Ab.Dom' Ab.Cod' Ab.Id' Ab.Comp'
   using Ab.is_classical_category.
 
-interpretation T: group_to_Lawvere_theory_functor G
+interpretation T: group_to_Lawvere_theory_functor A
   unfolding group_to_Lawvere_theory_functor_def
-  using G.comm_group_axioms.
+  using A.comm_group_axioms.
 
 
-lift_definition HFunctor'_on_arr :: "(nat \<times> nat list) option \<Rightarrow> (nat \<Rightarrow>\<^sub>0 int) \<Rightarrow> (nat \<Rightarrow>\<^sub>0 int)" is
+lift_definition HFunctorHat_on_arr :: "(nat \<times> nat list) option \<Rightarrow> (nat \<Rightarrow>\<^sub>0 int) \<Rightarrow> (nat \<Rightarrow>\<^sub>0 int)" is
   "\<lambda>f g x. if 0 < x \<and> x < fin_set.Dom' (the f) then g (get (snd (the f)) x) else 0"
 proof-
   fix f :: "(nat \<times> nat list) option"
@@ -47,13 +38,13 @@ proof-
 qed
 
 
-definition HFunctor' :: "(nat \<times> nat list) option \<Rightarrow> T.Lawv_arr" where
-  "HFunctor' = MkFunctor pointed_fin_set.comp (dual_category.comp (Ab.Lawv_comp))
+definition HFunctorHat :: "(nat \<times> nat list) option \<Rightarrow> T.Lawv_arr" where
+  "HFunctorHat = MkFunctor pointed_fin_set.comp (dual_category.comp (Ab.Lawv_comp))
                (\<lambda>f. Ab.MkArr (free_Abelian_group {i. 0 < i \<and> i < fin_set.Cod' (the f)}) 
                              (free_Abelian_group {i. 0 < i \<and> i < fin_set.Dom' (the f)}) 
-                             (HFunctor'_on_arr f))"
+                             (HFunctorHat_on_arr f))"
 
-lemma HFunctor' : "functor pointed_fin_set.comp (dual_category.comp (Ab.Lawv_comp)) HFunctor'"
+lemma HFunctorHat : "functor pointed_fin_set.comp (dual_category.comp (Ab.Lawv_comp)) HFunctorHat"
   unfolding functor_def
   apply (simp add: pointed_fin_set.is_category)
   apply auto
@@ -67,14 +58,14 @@ proof-
     using pointed_fin_set.is_category.
   interpret DL : dual_category "Ab.Lawv_comp"
     by (simp add: Ab.Lawv_is_category dual_category_def)
-  show "\<And>f. \<not> PFT.arr f \<Longrightarrow> HFunctor' f = DL.null"
-    unfolding HFunctor'_def by simp
-  show arr: "\<And>f. PFT.arr f \<Longrightarrow> DL.arr (HFunctor' f)"
+  show "\<And>f. \<not> PFT.arr f \<Longrightarrow> HFunctorHat f = DL.null"
+    unfolding HFunctorHat_def by simp
+  show arr: "\<And>f. PFT.arr f \<Longrightarrow> DL.arr (HFunctorHat f)"
     unfolding DL.arr_char
     unfolding Ab.Lawv_comp_def
     apply (subst classical_category.arr_char)
     using Ab.Lawv_is_classical_category apply simp
-    unfolding HFunctor'_def Ab.MkArr_def
+    unfolding HFunctorHat_def Ab.MkArr_def
     apply simp
     unfolding classical_full_subcategory.SArr_def 
           [OF Ab.Lawv_is_classical_full_subcategory]
@@ -98,12 +89,12 @@ proof-
       by simp
 
     show "Ab.Arr'
-          (restrict (HFunctor'_on_arr f) (carrier (free_Abelian_group {i. 0 < i \<and> i < fst (the f)})),
+          (restrict (HFunctorHat_on_arr f) (carrier (free_Abelian_group {i. 0 < i \<and> i < fst (the f)})),
            free_Abelian_group {i. 0 < i \<and> i < fst (the f)}, free_Abelian_group {i. 0 < i \<and> i < length (snd (the f))})"
       apply (simp add: Ab.Arr'_def Ab.Obj'_def Ab.Dom'_def Ab.Cod'_def)
       apply (simp add: abelian_free_Abelian_group)
       apply (simp add: hom_def free_Abelian_group_def)
-      apply (simp add: HFunctor'_on_arr_def Poly_Mapping.keys_def)
+      apply (simp add: HFunctorHat_on_arr_def Poly_Mapping.keys_def)
       apply auto
         apply (rule_tac poly_mapping_eqI)
       unfolding lookup_add
@@ -133,7 +124,7 @@ proof-
     qed
   qed
 
-  show dom : "\<And>f. PFT.arr f \<Longrightarrow> DL.dom (HFunctor' f) = HFunctor' (PFT.dom f)"
+  show dom : "\<And>f. PFT.arr f \<Longrightarrow> DL.dom (HFunctorHat f) = HFunctorHat (PFT.dom f)"
     using arr
     unfolding DL.dom_char DL.arr_char
     unfolding Ab.Lawv_comp_def
@@ -142,17 +133,17 @@ proof-
   proof-
     fix f
     assume arr_f : "PFT.arr f"
-    show "Some (Ab.Id' (Ab.Cod' (the (HFunctor' f)))) = HFunctor' (PFT.dom f)"
-      unfolding HFunctor'_def
+    show "Some (Ab.Id' (Ab.Cod' (the (HFunctorHat f)))) = HFunctorHat (PFT.dom f)"
+      unfolding HFunctorHat_def
       apply (simp add: arr_f Ab.Id'_def Ab.Cod'_def Ab.MkArr_def)
       unfolding pointed_fin_set.dom_char [OF arr_f]
       apply (simp add: fin_set.Id'_def)
     proof
       fix x
       show "(\<lambda>x\<in>carrier (free_Abelian_group {i. 0 < i \<and> i < length (snd (the f))}). x) x =
-         restrict (HFunctor'_on_arr (Some (length (snd (the f)), rev_get (length (snd (the f))) (\<lambda>k. k))))
+         restrict (HFunctorHat_on_arr (Some (length (snd (the f)), rev_get (length (snd (the f))) (\<lambda>k. k))))
           (carrier (free_Abelian_group {i. 0 < i \<and> i < length (snd (the f))})) x"
-        unfolding HFunctor'_on_arr_def 
+        unfolding HFunctorHat_on_arr_def 
         apply auto
         apply (rule_tac poly_mapping_eqI)
         apply auto
@@ -176,7 +167,7 @@ proof-
       qed
     qed
   qed
-  show cod : "\<And>f. PFT.arr f \<Longrightarrow> DL.cod (HFunctor' f) = HFunctor' (PFT.cod f)"
+  show cod : "\<And>f. PFT.arr f \<Longrightarrow> DL.cod (HFunctorHat f) = HFunctorHat (PFT.cod f)"
     using arr
     unfolding DL.cod_char DL.arr_char
     unfolding Ab.Lawv_comp_def
@@ -185,17 +176,17 @@ proof-
   proof-
     fix f
     assume arr_f : "PFT.arr f"
-    show "Some (Ab.Id' (Ab.Dom' (the (HFunctor' f)))) = HFunctor' (PFT.cod f)"
-      unfolding HFunctor'_def
+    show "Some (Ab.Id' (Ab.Dom' (the (HFunctorHat f)))) = HFunctorHat (PFT.cod f)"
+      unfolding HFunctorHat_def
       apply (simp add: arr_f Ab.Id'_def Ab.Dom'_def Ab.MkArr_def)
       unfolding pointed_fin_set.cod_char [OF arr_f]
       apply (simp add: fin_set.Id'_def)
     proof
       fix x
       show "(\<lambda>x\<in>carrier (free_Abelian_group {i. 0 < i \<and> i < fst (the f)}). x) x =
-         restrict (HFunctor'_on_arr (Some (fst (the f), rev_get (fst (the f)) (\<lambda>k. k))))
+         restrict (HFunctorHat_on_arr (Some (fst (the f), rev_get (fst (the f)) (\<lambda>k. k))))
           (carrier (free_Abelian_group {i. 0 < i \<and> i < fst (the f)})) x"
-        unfolding HFunctor'_on_arr_def 
+        unfolding HFunctorHat_on_arr_def 
         apply auto
         apply (rule_tac poly_mapping_eqI)
         apply auto
@@ -221,7 +212,7 @@ proof-
   qed
   fix g f
   assume arr_gf : "PFT.seq g f"
-  have arr_hgf : "DL.seq (HFunctor' g) (HFunctor' f)"
+  have arr_hgf : "DL.seq (HFunctorHat g) (HFunctorHat f)"
     apply (rule_tac PFT.seqE [OF arr_gf])
     apply (rule_tac DL.seqI)
     using arr dom cod by simp_all
@@ -277,7 +268,7 @@ proof-
     by auto
 
 
-  show "HFunctor' (pointed_fin_set.comp g f) = DL.comp (HFunctor' g) (HFunctor' f)"
+  show "HFunctorHat (pointed_fin_set.comp g f) = DL.comp (HFunctorHat g) (HFunctorHat f)"
     apply (subst LA_comp [OF arr_hgf])
     apply (rule_tac Ab.comp_eqI)
           apply (rule_tac LA_arr [OF arr [OF arr_gf]])
@@ -295,12 +286,12 @@ proof-
     unfolding LA_cod [OF arr [OF arr_f]]
     unfolding dom [OF arr_g] cod [OF arr_f]
      apply (simp add: seq)
-    unfolding HFunctor'_def
+    unfolding HFunctorHat_def
     apply (simp add: arr_f arr_g arr_gf Ab.MkArr_def Ab.Dom'_def)
     unfolding pointed_fin_set.comp_char [OF arr_f arr_g seq]
     unfolding fin_set.Comp'_def
     apply auto
-    apply (simp add: HFunctor'_on_arr_def)
+    apply (simp add: HFunctorHat_on_arr_def)
     apply (rule_tac poly_mapping_eqI)
     apply auto
   proof-
@@ -354,12 +345,12 @@ qed
 
 
 definition HFunctor where
-  "HFunctor = T.map \<circ> HFunctor'"
+  "HFunctor = T.map \<circ> HFunctorHat"
 
 lemma is_functor : "functor pointed_fin_set.comp pointed_set.pointed_set_comp HFunctor"
   unfolding HFunctor_def
   apply (rule_tac functor_comp)
-   apply (rule_tac HFunctor')
+   apply (rule_tac HFunctorHat)
   by (rule_tac T.is_functor)
 
 

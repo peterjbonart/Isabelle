@@ -732,7 +732,8 @@ proof-
   qed
 qed
 
-interpretation Cat_with_products: category_with_products P.pointed_set_comp 
+interpretation Cat_with_products: category_with_products 
+       P.pointed_set_comp 
        product
        projection1
        projection2

@@ -4,6 +4,7 @@ theory SomeCategoryTheory
          "Category3.NaturalTransformation"
          "Category3.ProductCategory"
          "Category3.AbstractedCategory"
+         "Category3.FunctorCategory"
 begin
 
 

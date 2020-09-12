@@ -271,8 +271,8 @@ locale colimit =
   for C :: "'c comp" 
   and D :: "'d comp"
   and F :: "'c \<Rightarrow> 'd"
-  and \<tau> :: "'c \<Rightarrow> 'd" 
   and d :: "'d"
+  and \<tau> :: "'c \<Rightarrow> 'd" 
   and UP_map :: "'d \<Rightarrow> ('c \<Rightarrow> 'd) \<Rightarrow> 'd" +
 assumes d_obj : "D.ide d"
   and cocone : "cocone C D F d \<tau>"
@@ -309,6 +309,7 @@ end
 
 
 
+
 locale colimit_functoriality =
   F : functor_to_cat_overX C S F_ob F_arr \<tau>
   for C :: "'c comp"
@@ -322,7 +323,7 @@ locale colimit_functoriality =
 assumes
   colimit_existence : "\<And>c. F.F.C.ide c \<Longrightarrow>
                        colimit (F_ob c) S (\<tau> c) 
-                       (cocone_map c) (colim c) (colim_UP_map c)"
+                       (colim c) (cocone_map c) (colim_UP_map c)"
 begin
 
 definition colim_functor :: "'c \<Rightarrow> 's" where
@@ -337,7 +338,7 @@ lemma colim_UP_map_in_hom :
   and "cocone (F_ob c) S (\<tau> c) x \<sigma>" and "F.S.ide x"
 shows "F.S.in_hom (colim_UP_map c x \<sigma>) (colim c) x"
 proof-
-  have "colimit_axioms (F_ob c) S (\<tau> c) (cocone_map c) (colim c)
+  have "colimit_axioms (F_ob c) S (\<tau> c) (colim c) (cocone_map c) 
    (colim_UP_map c)" 
     using colimit_existence [OF \<open>F.F.C.ide c\<close>]
     unfolding colimit_def by simp
@@ -702,7 +703,7 @@ lemma colim_functor_obj_simp :
   assumes "F.F.C.ide A"
   shows "colim_functor A = colim A"
 proof-
-  interpret Col : colimit "F_ob A" S "\<tau> A" "cocone_map A" "colim A" "colim_UP_map A"
+  interpret Col : colimit "F_ob A" S "\<tau> A" "colim A" "cocone_map A" "colim_UP_map A"
     using colimit_existence [OF assms].
   have EQ: "(vertical_composite.map (F_ob A) S (\<tau> A) (cocone_map A \<circ> F_arr A)) = cocone_map A"
     apply (rule_tac ext)
