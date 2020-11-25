@@ -1,7 +1,7 @@
 How to use these theories in Isabelle:
 
 Download the theories from this github.
-Download the following category theory library:
+Download the 2019 version of the following category theory library:
 https://www.isa-afp.org/entries/Category3.html
 
 Extract the files from this github into some folder.
